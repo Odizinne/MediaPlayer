@@ -62,7 +62,7 @@ Name: "russian";    MessagesFile: "compiler:Languages\Russian.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "registerfiles"; Description: "Register MediaPlayer as default image viewer"; GroupDescription: "File associations"; Flags: checkedonce
+Name: "registerfiles"; Description: "Register MediaPlayer for media files"; GroupDescription: "File associations"; Flags: checkedonce
 
 [Files]
 Source: "{#AppSourceDir}*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -74,48 +74,86 @@ Root: HKCU; Subkey: "Software\Classes\Applications\MediaPlayer.exe\shell"; Flags
 Root: HKCU; Subkey: "Software\Classes\Applications\MediaPlayer.exe\shell\open"; Flags: uninsdeletekey; Tasks: registerfiles
 Root: HKCU; Subkey: "Software\Classes\Applications\MediaPlayer.exe\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
 
-; Register file associations for common image formats
-Root: HKCU; Subkey: "Software\Classes\.jpg\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.jpg"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\.jpeg\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.jpeg"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\.png\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.png"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\.gif\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.gif"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\.bmp\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.bmp"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\.tiff\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.tiff"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\.tif\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.tif"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\.webp\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.webp"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+; Register file associations for video formats
+Root: HKCU; Subkey: "Software\Classes\.mp4\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.mp4"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.avi\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.avi"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.mov\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.mov"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.mkv\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.mkv"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.webm\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.webm"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.wmv\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.wmv"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.m4v\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.m4v"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.flv\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.flv"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
 
-; Create ProgID entries for each format
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.jpg"; ValueType: string; ValueData: "JPEG Image"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.jpg\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.jpg\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+; Register file associations for audio formats
+Root: HKCU; Subkey: "Software\Classes\.mp3\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.mp3"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.wav\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.wav"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.flac\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.flac"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.ogg\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.ogg"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.aac\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.aac"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.wma\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.wma"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\.m4a\OpenWithProgids"; ValueType: string; ValueName: "MediaPlayer.m4a"; ValueData: ""; Flags: uninsdeletevalue; Tasks: registerfiles
 
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.jpeg"; ValueType: string; ValueData: "JPEG Image"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.jpeg\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.jpeg\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+; Create ProgID entries for video formats
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mp4"; ValueType: string; ValueData: "MP4 Video"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mp4\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mp4\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
 
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.png"; ValueType: string; ValueData: "PNG Image"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.png\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.png\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.avi"; ValueType: string; ValueData: "AVI Video"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.avi\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.avi\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
 
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.gif"; ValueType: string; ValueData: "GIF Image"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.gif\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.gif\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mov"; ValueType: string; ValueData: "QuickTime Movie"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mov\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mov\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
 
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.bmp"; ValueType: string; ValueData: "Bitmap Image"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.bmp\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.bmp\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mkv"; ValueType: string; ValueData: "Matroska Video"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mkv\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mkv\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
 
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.tiff"; ValueType: string; ValueData: "TIFF Image"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.tiff\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.tiff\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.webm"; ValueType: string; ValueData: "WebM Video"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.webm\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.webm\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
 
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.tif"; ValueType: string; ValueData: "TIFF Image"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.tif\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.tif\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.wmv"; ValueType: string; ValueData: "Windows Media Video"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.wmv\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.wmv\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
 
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.webp"; ValueType: string; ValueData: "WebP Image"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.webp\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
-Root: HKCU; Subkey: "Software\Classes\MediaPlayer.webp\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.m4v"; ValueType: string; ValueData: "iTunes Video"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.m4v\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.m4v\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.flv"; ValueType: string; ValueData: "Flash Video"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.flv\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.flv\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+
+; Create ProgID entries for audio formats
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mp3"; ValueType: string; ValueData: "MP3 Audio"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mp3\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.mp3\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.wav"; ValueType: string; ValueData: "Wave Audio"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.wav\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.wav\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.flac"; ValueType: string; ValueData: "FLAC Audio"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.flac\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.flac\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.ogg"; ValueType: string; ValueData: "Ogg Audio"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.ogg\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.ogg\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.aac"; ValueType: string; ValueData: "AAC Audio"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.aac\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.aac\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.wma"; ValueType: string; ValueData: "Windows Media Audio"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.wma\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.wma\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
+
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.m4a"; ValueType: string; ValueData: "MPEG-4 Audio"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.m4a\DefaultIcon"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"",0"; Flags: uninsdeletekey; Tasks: registerfiles
+Root: HKCU; Subkey: "Software\Classes\MediaPlayer.m4a\shell\open\command"; ValueType: string; ValueData: """{app}\bin\MediaPlayer.exe"" ""%1"""; Flags: uninsdeletekey; Tasks: registerfiles
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\bin\{#AppExeName}"; IconFilename: "{app}\bin\{#AppExeName}"

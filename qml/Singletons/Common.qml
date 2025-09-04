@@ -21,6 +21,9 @@ Item {
         // Update current file in the playlist
         MediaController.setCurrentFile(mediaPath)
 
+        // Load metadata for audio files
+        MediaController.loadMediaMetadata(mediaPath)
+
         // Determine if it's a video file
         var path = mediaPath.toString().toLowerCase()
         isVideo = path.includes('.mp4') || path.includes('.avi') ||

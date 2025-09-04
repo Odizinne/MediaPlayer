@@ -10,6 +10,9 @@
         <file>file.svg</file>
         <file>volume.svg</file>
         <file>volume_mute.svg</file>
+        <file>music.svg</file>
+        <file>forward.svg</file>
+        <file>rewind.svg</file>
         <file>icon.png</file>
     </qresource>
 </RCC>

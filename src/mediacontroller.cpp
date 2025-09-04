@@ -1,9 +1,71 @@
-#include "MediaController.h"
+#include "mediacontroller.h"
 
 MediaController* MediaController::s_instance = nullptr;
+CoverArtImageProvider* MediaController::s_coverArtProvider = nullptr;
 
-MediaController::MediaController(QObject *parent) : QObject(parent), m_currentIndex(-1)
+// CoverArtImageProvider implementation
+CoverArtImageProvider::CoverArtImageProvider()
+    : QQuickImageProvider(QQuickImageProvider::Image)
 {
+}
+
+QImage CoverArtImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
+{
+    QImage image = m_coverImages.value(id);
+
+    if (image.isNull()) {
+        // Return a default music note image if no cover art is found
+        image = QImage(256, 256, QImage::Format_ARGB32);
+        image.fill(Qt::transparent);
+
+        if (size) {
+            *size = image.size();
+        }
+        return image;
+    }
+
+    if (size) {
+        *size = image.size();
+    }
+
+    if (requestedSize.isValid()) {
+        return image.scaled(requestedSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+
+    return image;
+}
+
+void CoverArtImageProvider::setCoverArt(const QString &filePath, const QImage &image)
+{
+    QString key = QUrl::fromLocalFile(filePath).toString();
+    m_coverImages[key] = image;
+}
+
+void CoverArtImageProvider::clearCoverArt(const QString &filePath)
+{
+    QString key = QUrl::fromLocalFile(filePath).toString();
+    m_coverImages.remove(key);
+}
+
+// MediaController implementation
+MediaController::MediaController(QObject *parent)
+    : QObject(parent), m_currentIndex(-1), m_metadataPlayer(nullptr), m_metadataAudioOutput(nullptr)
+{
+    // Initialize cover art provider
+    if (!s_coverArtProvider) {
+        s_coverArtProvider = new CoverArtImageProvider();
+    }
+
+    // Initialize metadata extraction player
+    m_metadataPlayer = new QMediaPlayer(this);
+    m_metadataAudioOutput = new QAudioOutput(this);
+    m_metadataPlayer->setAudioOutput(m_metadataAudioOutput);
+
+    connect(m_metadataPlayer, &QMediaPlayer::metaDataChanged,
+            this, &MediaController::onMetadataChanged);
+    connect(m_metadataPlayer, &QMediaPlayer::mediaStatusChanged,
+            this, &MediaController::onMediaStatusChanged);
+
     // Process command line arguments
     QStringList args = QGuiApplication::arguments();
 
@@ -24,6 +86,11 @@ MediaController* MediaController::create(QQmlEngine *qmlEngine, QJSEngine *jsEng
 
     if (!s_instance) {
         s_instance = new MediaController();
+
+        // Register the image provider with the QML engine
+        if (qmlEngine && s_coverArtProvider) {
+            qmlEngine->addImageProvider("coverart", s_coverArtProvider);
+        }
     }
     return s_instance;
 }
@@ -32,6 +99,82 @@ MediaController* MediaController::instance()
 {
     return s_instance;
 }
+
+void MediaController::loadMediaMetadata(const QString &filePath)
+{
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+    // Clear previous metadata
+    m_currentTitle.clear();
+    m_currentArtist.clear();
+    m_currentAlbum.clear();
+    m_currentCoverArtUrl.clear();
+
+    qDebug() << "Loading metadata for:" << filePath;
+
+    // Set the source for metadata extraction
+    m_metadataPlayer->setSource(QUrl(filePath));
+}
+
+void MediaController::onMediaStatusChanged(QMediaPlayer::MediaStatus status)
+{
+    qDebug() << "Metadata player status changed:" << status;
+
+    if (status == QMediaPlayer::LoadedMedia) {
+        onMetadataChanged();
+    }
+}
+
+void MediaController::onMetadataChanged()
+{
+    QMediaMetaData metaData = m_metadataPlayer->metaData();
+
+    qDebug() << "Metadata changed, available keys:" << metaData.keys();
+
+    // Extract basic metadata
+    m_currentTitle = metaData.stringValue(QMediaMetaData::Title);
+    m_currentArtist = metaData.stringValue(QMediaMetaData::AlbumArtist);
+    if (m_currentArtist.isEmpty()) {
+        m_currentArtist = metaData.stringValue(QMediaMetaData::ContributingArtist);
+    }
+    m_currentAlbum = metaData.stringValue(QMediaMetaData::AlbumTitle);
+
+    // Handle cover art
+    QVariant coverArtVariant = metaData.value(QMediaMetaData::CoverArtImage);
+    if (coverArtVariant.isValid()) {
+        QImage coverImage = coverArtVariant.value<QImage>();
+        if (!coverImage.isNull()) {
+            QString currentSource = m_metadataPlayer->source().toString();
+            s_coverArtProvider->setCoverArt(currentSource, coverImage);
+            m_currentCoverArtUrl = "image://coverart/" + currentSource;
+            qDebug() << "Cover art extracted, size:" << coverImage.size();
+        }
+    }
+
+    // Fallback to filename if no title found
+    if (m_currentTitle.isEmpty()) {
+        QString currentSource = m_metadataPlayer->source().toString();
+        m_currentTitle = getFileName(currentSource);
+
+        // Remove file extension from title
+        int lastDot = m_currentTitle.lastIndexOf('.');
+        if (lastDot > 0) {
+            m_currentTitle = m_currentTitle.left(lastDot);
+        }
+    }
+
+    qDebug() << "Extracted metadata:";
+    qDebug() << "  Title:" << m_currentTitle;
+    qDebug() << "  Artist:" << m_currentArtist;
+    qDebug() << "  Album:" << m_currentAlbum;
+    qDebug() << "  Cover Art URL:" << m_currentCoverArtUrl;
+
+    emit metadataChanged();
+}
+
+// ... rest of the existing methods remain the same ...
 
 QString MediaController::getInitialMediaPath() const
 {
@@ -104,6 +247,8 @@ void MediaController::copyPathToClipboard(const QString &filePath)
     clipboard->setText(localPath);
 }
 
+// ... rest of the existing playlist methods remain the same ...
+
 void MediaController::buildPlaylistFromFile(const QString &filePath)
 {
     m_playlist.clear();
@@ -123,13 +268,11 @@ void MediaController::buildPlaylistFromFile(const QString &filePath)
         return;
     }
 
-    // Get directory and scan for media files
     QDir directory = fileInfo.dir();
     m_playlist = getSupportedMediaFiles(directory);
 
     qDebug() << "Found" << m_playlist.size() << "media files in directory";
 
-    // Find current file index - compare absolute paths
     QString currentAbsolutePath = fileInfo.absoluteFilePath();
     qDebug() << "Looking for current file:" << currentAbsolutePath;
 
@@ -148,7 +291,6 @@ void MediaController::buildPlaylistFromFile(const QString &filePath)
         qDebug() << "WARNING: Current file not found in playlist!";
     }
 
-    // Emit signal to update QML bindings
     emit playlistChanged();
 }
 

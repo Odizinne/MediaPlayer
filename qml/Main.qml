@@ -17,10 +17,6 @@ ApplicationWindow {
     Universal.theme: Universal.System
     Universal.accent: palette.highlight
 
-    // Mouse tracking properties
-    property bool mouseActive: true
-    property int hideControlsDelay: 3000 // 3 seconds
-
     // Audio device tracking
     property var currentAudioOutput: null
 
@@ -51,7 +47,6 @@ ApplicationWindow {
     }
 
     function playPrevious() {
-        // If media has played for more than 5 seconds, restart current file
         if (mediaPlayer.position > 5000) {
             mediaPlayer.setPosition(0)
         } else {
@@ -60,19 +55,21 @@ ApplicationWindow {
                 Common.loadMedia(previousFile)
                 mediaPlayer.source = previousFile
             } else {
-                // If no previous file, restart current
                 mediaPlayer.setPosition(0)
             }
         }
     }
 
+    function showControls() {
+        controlsToolbar.opacity = 1.0
+        hideTimer.restart()
+    }
+
     Timer {
-        id: hideControlsTimer
-        interval: window.hideControlsDelay
+        id: hideTimer
+        interval: 3000
         onTriggered: {
-            if (Common.currentMediaPath !== "" && window.visibility === Window.FullScreen) {
-                window.mouseActive = false
-            }
+            controlsToolbar.opacity = 0.0
         }
     }
 
@@ -107,8 +104,7 @@ ApplicationWindow {
     Shortcut {
         sequence: "Right"
         onActivated: {
-            // Seek forward 10 seconds
-            var newPosition = mediaPlayer.position + 10000 // 10 seconds in milliseconds
+            var newPosition = mediaPlayer.position + 10000
             if (newPosition > mediaPlayer.duration) {
                 newPosition = mediaPlayer.duration
             }
@@ -119,8 +115,7 @@ ApplicationWindow {
     Shortcut {
         sequence: "Left"
         onActivated: {
-            // Seek backward 10 seconds
-            var newPosition = mediaPlayer.position - 10000 // 10 seconds in milliseconds
+            var newPosition = mediaPlayer.position - 10000
             if (newPosition < 0) {
                 newPosition = 0
             }
@@ -173,9 +168,8 @@ ApplicationWindow {
                     playlistInfo = " (" + (MediaController.currentIndex + 1) + "/" + MediaController.playlistSize + ")"
                 }
                 window.title = fileName + playlistInfo + " - MediaPlayer"
-                mediaPlayer.play()  // Auto-play when media is loaded
+                mediaPlayer.play()
 
-                // Debug playlist info
                 console.log("Loaded media. Playlist size:", MediaController.playlistSize,
                             "Current index:", MediaController.currentIndex,
                             "Has next:", MediaController.hasNext,
@@ -186,7 +180,6 @@ ApplicationWindow {
                 console.log("Error loading media:", Common.currentMediaPath)
                 window.title = "MediaPlayer - Error loading media"
             } else if (mediaStatus === MediaPlayer.EndOfMedia && MediaController.hasNext) {
-                // Auto-play next file when current file ends
                 window.playNext()
             }
         }
@@ -241,7 +234,7 @@ ApplicationWindow {
         height: 120
         z: 1000
         opacity: 0.0
-        scale: 0.0   // start from zero
+        scale: 0.0
 
         Rectangle {
             anchors.fill: parent
@@ -264,13 +257,11 @@ ApplicationWindow {
             id: showAnim
             running: false
 
-            // Continuous scale: 0 → 0.25 quickly, then 0.25 → 1
             SequentialAnimation {
                 PropertyAnimation { target: overlay; property: "scale"; from: 0.0; to: 0.25; duration: 150; easing.type: Easing.OutBack }
                 PropertyAnimation { target: overlay; property: "scale"; from: 0.25; to: 1.0; duration: 650; easing.type: Easing.OutCubic }
             }
 
-            // Opacity: fade in while scale 0 → 0.25, then fade out while scale 0.25 → 1
             SequentialAnimation {
                 PropertyAnimation { target: overlay; property: "opacity"; from: 0; to: 1; duration: 150; easing.type: Easing.InQuad }
                 PropertyAnimation { target: overlay; property: "opacity"; from: 1; to: 0; duration: 650; easing.type: Easing.OutQuad }
@@ -287,16 +278,8 @@ ApplicationWindow {
             anchors.fill: parent
             hoverEnabled: true
             acceptedButtons: Qt.NoButton
-
-            onPositionChanged: {
-                window.mouseActive = true
-                hideControlsTimer.restart()
-            }
-
-            onEntered: {
-                window.mouseActive = true
-                hideControlsTimer.restart()
-            }
+            onPositionChanged: window.showControls()
+            onEntered: window.showControls()
         }
 
         VideoOutput {
@@ -351,41 +334,76 @@ ApplicationWindow {
             visible: !Common.isVideo && Common.currentMediaPath !== ""
 
             Column {
-                anchors.centerIn: parent
+                anchors.left: parent.left
+                anchors.top: parent.top
+                anchors.margins: 15
                 spacing: 20
 
                 Rectangle {
-                    width: 120
-                    height: 120
-                    color: Universal.accent
-                    radius: 60
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 200
+                    height: 200
+                    color: Universal.baseLowColor
 
-                    Text {
+                    Image {
+                        id: albumArtImage
+                        anchors.fill: parent
+                        fillMode: Image.PreserveAspectCrop
+                        source: MediaController.currentCoverArtUrl
+                        visible: source !== "" && status === Image.Ready
+
+                        Rectangle {
+                            anchors.fill: parent
+                            color: "transparent"
+                            border.color: Universal.baseLowColor
+                            border.width: 2
+                            visible: parent.visible
+                        }
+                    }
+
+                    IconImage {
                         anchors.centerIn: parent
-                        text: "♪"
-                        font.pointSize: 48
-                        color: "white"
+                        source: "qrc:/icons/music.svg"
+                        sourceSize.width: 64
+                        sourceSize.height: 64
+                        color: Universal.foreground
+                        visible: MediaController.currentCoverArtUrl === "" || albumArtImage.status === Image.Error || albumArtImage.status === Image.Null
                     }
                 }
 
                 Label {
-                    text: Common.getFileName(Common.currentMediaPath)
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    font.pointSize: 16
+                    text: MediaController.currentTitle || Common.getFileName(Common.currentMediaPath)
+                    font.pointSize: 18
                     font.bold: true
+                    width: Math.min(400, implicitWidth)
+                    wrapMode: Text.WordWrap
+                }
+
+                Label {
+                    text: MediaController.currentArtist || ""
+                    font.pointSize: 14
+                    opacity: 0.8
+                    visible: text !== ""
+                    width: Math.min(350, implicitWidth)
+                    wrapMode: Text.WordWrap
+                }
+
+                Label {
+                    text: MediaController.currentAlbum || ""
+                    font.pointSize: 12
+                    opacity: 0.6
+                    visible: text !== ""
+                    width: Math.min(300, implicitWidth)
+                    wrapMode: Text.WordWrap
                 }
 
                 Label {
                     text: MediaController.formatDuration(mediaPlayer.duration)
-                    anchors.horizontalCenter: parent.horizontalCenter
                     opacity: 0.7
                 }
 
                 Label {
                     text: MediaController.playlistSize > 1 ?
                               (MediaController.currentIndex + 1) + " of " + MediaController.playlistSize : ""
-                    anchors.horizontalCenter: parent.horizontalCenter
                     opacity: 0.5
                     font.pointSize: 12
                 }
@@ -490,15 +508,17 @@ ApplicationWindow {
     }
 
     ToolBar {
+        id: controlsToolbar
         visible: Common.currentMediaPath !== ""
-        opacity: (window.visibility !== Window.FullScreen) || window.mouseActive ? 1.0 : 0.0
-        height: ctrlLyt.implicitHeight + 30
+        opacity: 1.0
+        height: 120
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+
         Behavior on opacity {
             NumberAnimation {
-                duration: 300
+                duration: 500
                 easing.type: Easing.InOutQuad
             }
         }
@@ -508,157 +528,214 @@ ApplicationWindow {
             opacity: 0.7
         }
 
-        ColumnLayout {
-            id: ctrlLyt
-            anchors.fill: parent
-            anchors.margins: 15
-            spacing: 10
+        Slider {
+            id: progressSlider
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 10  // Changed from 20 to 10
+            from: 0
+            to: Math.max(mediaPlayer.duration, 1)
+            value: mediaPlayer.position
+            enabled: mediaPlayer.seekable && mediaPlayer.duration > 0
+            property bool wasPlaying: false
 
-            // Media controls row
-            RowLayout {
-                Layout.fillWidth: true
+            onPressedChanged: {
+                window.showControls()
 
-                // Previous button
-                ToolButton {
-                    icon.source: "qrc:/icons/prev.svg"
-                    Layout.preferredWidth: height
-                    enabled: MediaController.hasPrevious || mediaPlayer.position > 5000
-                    onClicked: window.playPrevious()
-                    ToolTip.visible: hovered
-                    ToolTip.text: {
-                        if (mediaPlayer.position > 5000) {
-                            return "Restart"
-                        } else if (MediaController.hasPrevious) {
-                            return "Previous"
-                        } else {
-                            return "Restart"
-                        }
+                if (pressed && mediaPlayer.playing) {
+                    mediaPlayer.pause()
+                    wasPlaying = true
+                } else if (pressed && !mediaPlayer.playing) {
+                    wasPlaying = false
+                }
+
+                if (!pressed && mediaPlayer.duration > 0) {
+                    mediaPlayer.setPosition(value)
+                    if (wasPlaying) {
+                        mediaPlayer.play()
+                    } else {
+                        mediaPlayer.pause()
                     }
-                }
-
-                // Play/Pause button
-                ToolButton {
-                    icon.source: mediaPlayer.playbackState === MediaPlayer.PlayingState ?
-                                     "qrc:/icons/pause.svg" : "qrc:/icons/play.svg"
-                    Layout.preferredWidth: height
-                    onClicked: {
-                        if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
-                            mediaPlayer.pause()
-                        } else {
-                            mediaPlayer.play()
-                        }
-                        overlay.trigger()
-                    }
-
-                    ToolTip.visible: hovered
-                    ToolTip.text: mediaPlayer.playbackState === MediaPlayer.PlayingState ? "Pause" : "Play"
-                }
-
-                // Stop button
-                ToolButton {
-                    icon.source: "qrc:/icons/stop.svg"
-                    Layout.preferredWidth: height
-                    onClicked: mediaPlayer.stop()
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Stop"
-                }
-
-                // Next button
-                ToolButton {
-                    icon.source: "qrc:/icons/next.svg"
-                    Layout.preferredWidth: height
-                    enabled: MediaController.hasNext
-                    onClicked: window.playNext()
-                    ToolTip.visible: hovered
-                    ToolTip.text: MediaController.hasNext ? "Next" : "Next (no more files)"
-                }
-
-                Item { Layout.fillWidth: true }
-
-                // Time labels
-                Label {
-                    text: MediaController.formatDuration(mediaPlayer.position)
-                    opacity: 0.7
-                    font.pointSize: 9
-                }
-
-                Label {
-                    text: "/"
-                    opacity: 0.5
-                    font.pointSize: 9
-                }
-
-                Label {
-                    text: MediaController.formatDuration(mediaPlayer.duration)
-                    opacity: 0.7
-                    font.pointSize: 9
-                }
-
-                Item { Layout.fillWidth: true }
-
-                // Audio controls
-                ToolButton {
-                    id: muteButton
-                    icon.source: checked ? "qrc:/icons/volume_mute.svg" : "qrc:/icons/volume.svg"
-                    checkable: true
-                    Layout.preferredWidth: height
-                    ToolTip.visible: hovered
-                    ToolTip.text: checked ? "Unmute" : "Mute"
-                }
-
-                Slider {
-                    id: volumeSlider
-                    Layout.preferredWidth: 100
-                    from: 0
-                    to: 1
-                    value: 1
-                    ToolTip.visible: hovered
-                    ToolTip.text: "Volume: " + Math.round(value * 100) + "%"
-                }
-
-                ToolButton {
-                    icon.source: window.visibility === Window.FullScreen ? "qrc:/icons/fit.svg" : "qrc:/icons/fullscreen.svg"
-                    Layout.preferredWidth: height
-                    onClicked: window.toggleFullscreen()
-                    enabled: Common.isVideo && Common.currentMediaPath !== ""
-                    visible: Common.isVideo
-                    ToolTip.visible: hovered
-                    ToolTip.text: window.visibility === Window.FullScreen ? "Exit fullscreen" : "Enter fullscreen"
                 }
             }
 
-            Slider {
-                id: progressSlider
-                Layout.fillWidth: true
-                from: 0
-                to: Math.max(mediaPlayer.duration, 1)
+            Binding {
+                target: progressSlider
+                property: "value"
                 value: mediaPlayer.position
-                enabled: mediaPlayer.seekable && mediaPlayer.duration > 0
-                property bool wasPlaying: false
-                onPressedChanged: {
-                    if (pressed && mediaPlayer.playing) {
+                when: !progressSlider.pressed && mediaPlayer.duration > 0
+            }
+        }
+
+        // Time labels row (left side)
+        Row {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.leftMargin: 15
+            anchors.verticalCenterOffset: 20  // Changed from 10 to 20 (more toward bottom)
+            spacing: 8
+
+            Label {
+                text: MediaController.formatDuration(mediaPlayer.position)
+                opacity: 0.7
+                font.pointSize: 10
+            }
+
+            Label {
+                text: "/"
+                opacity: 0.5
+                font.pointSize: 10
+            }
+
+            Label {
+                text: MediaController.formatDuration(mediaPlayer.duration)
+                opacity: 0.7
+                font.pointSize: 10
+            }
+        }
+
+        // Media control buttons row (centered)
+        Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenterOffset: 20  // Changed from 10 to 20 (more toward bottom)
+            spacing: 6
+
+            ToolButton {
+                icon.source: "qrc:/icons/prev.svg"
+                width: 48
+                height: 48
+                enabled: MediaController.hasPrevious || mediaPlayer.position > 5000
+                onClicked: {
+                    window.showControls()
+                    window.playPrevious()
+                }
+                onHoveredChanged: if (hovered) window.showControls()
+                ToolTip.visible: hovered
+                ToolTip.text: {
+                    if (mediaPlayer.position > 5000) {
+                        return "Restart"
+                    } else if (MediaController.hasPrevious) {
+                        return "Previous"
+                    } else {
+                        return "Restart"
+                    }
+                }
+            }
+
+            ToolButton {
+                icon.source: "qrc:/icons/rewind.svg"
+                width: 48
+                height: 48
+                onClicked: {
+                    window.showControls()
+                    var newPosition = mediaPlayer.position - 10000
+                    if (newPosition < 0) {
+                        newPosition = 0
+                    }
+                    mediaPlayer.setPosition(newPosition)
+                }
+                onHoveredChanged: if (hovered) window.showControls()
+                ToolTip.visible: hovered
+                ToolTip.text: "Rewind 10 seconds"
+            }
+
+            ToolButton {
+                icon.source: mediaPlayer.playbackState === MediaPlayer.PlayingState ?
+                                 "qrc:/icons/pause.svg" : "qrc:/icons/play.svg"
+                width: 48
+                height: 48
+                onClicked: {
+                    window.showControls()
+                    if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
                         mediaPlayer.pause()
-                        wasPlaying = true
-                    } else if (pressed && !mediaPlayer.playing) {
-                        wasPlaying = false
+                    } else {
+                        mediaPlayer.play()
                     }
+                    overlay.trigger()
+                }
+                onHoveredChanged: if (hovered) window.showControls()
+                ToolTip.visible: hovered
+                ToolTip.text: mediaPlayer.playbackState === MediaPlayer.PlayingState ? "Pause" : "Play"
+            }
 
-                    if (!pressed && mediaPlayer.duration > 0) {
-                        mediaPlayer.setPosition(value)
-                        if (wasPlaying) {
-                            mediaPlayer.play()
-                        } else {
-                            mediaPlayer.pause()
-                        }
+            ToolButton {
+                icon.source: "qrc:/icons/forward.svg"
+                width: 48
+                height: 48
+                onClicked: {
+                    window.showControls()
+                    var newPosition = mediaPlayer.position + 10000
+                    if (newPosition > mediaPlayer.duration) {
+                        newPosition = mediaPlayer.duration
                     }
+                    mediaPlayer.setPosition(newPosition)
                 }
+                onHoveredChanged: if (hovered) window.showControls()
+                ToolTip.visible: hovered
+                ToolTip.text: "Forward 10 seconds"
+            }
 
-                Binding {
-                    target: progressSlider
-                    property: "value"
-                    value: mediaPlayer.position
-                    when: !progressSlider.pressed && mediaPlayer.duration > 0
+            ToolButton {
+                icon.source: "qrc:/icons/next.svg"
+                width: 48
+                height: 48
+                enabled: MediaController.hasNext
+                onClicked: {
+                    window.showControls()
+                    window.playNext()
                 }
+                onHoveredChanged: if (hovered) window.showControls()
+                ToolTip.visible: hovered
+                ToolTip.text: MediaController.hasNext ? "Next" : "Next (no more files)"
+            }
+        }
+
+        Row {
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.rightMargin: 0
+            anchors.verticalCenterOffset: 20
+            spacing: 6
+
+            ToolButton {
+                id: muteButton
+                icon.source: checked ? "qrc:/icons/volume_mute.svg" : "qrc:/icons/volume.svg"
+                checkable: true
+                width: 48
+                height: 48
+                onClicked: window.showControls()
+                onHoveredChanged: if (hovered) window.showControls()
+                ToolTip.visible: hovered
+                ToolTip.text: checked ? "Unmute" : "Mute"
+            }
+
+            Slider {
+                id: volumeSlider
+                width: 120
+                anchors.verticalCenter: parent.verticalCenter
+                from: 0
+                to: 1
+                value: 1
+                onPressedChanged: if (pressed) window.showControls()
+                onHoveredChanged: if (hovered) window.showControls()
+                ToolTip.visible: hovered
+                ToolTip.text: "Volume: " + Math.round(value * 100) + "%"
+            }
+
+            ToolButton {
+                icon.source: window.visibility === Window.FullScreen ? "qrc:/icons/fit.svg" : "qrc:/icons/fullscreen.svg"
+                width: 48
+                height: 48
+                onClicked: {
+                    window.showControls()
+                    window.toggleFullscreen()
+                }
+                onHoveredChanged: if (hovered) window.showControls()
+                enabled: Common.currentMediaPath !== ""
+                ToolTip.visible: hovered
+                ToolTip.text: window.visibility === Window.FullScreen ? "Exit fullscreen" : "Enter fullscreen"
             }
         }
     }
@@ -683,12 +760,11 @@ ApplicationWindow {
     function toggleFullscreen() {
         if (window.visibility === Window.FullScreen) {
             window.showNormal()
-            mouseActive = true
-            hideControlsTimer.stop()
+            controlsToolbar.opacity = 1.0
+            hideTimer.stop()
         } else {
             window.showFullScreen()
-            mouseActive = true
-            hideControlsTimer.restart()
+            showControls()
         }
     }
 }

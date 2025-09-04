@@ -21,6 +21,26 @@ ApplicationWindow {
     property bool mouseActive: true
     property int hideControlsDelay: 3000 // 3 seconds
 
+    // Audio device tracking
+    property var currentAudioOutput: null
+
+    MediaDevices {
+        id: mediaDevices
+        onAudioOutputsChanged: {
+            updateAudioDevice()
+        }
+    }
+
+    function updateAudioDevice() {
+        const device = mediaDevices.defaultAudioOutput
+        if (device.id !== (currentAudioOutput ? currentAudioOutput.id : "")) {
+            currentAudioOutput = device
+            if (audioOutput) {
+                audioOutput.device = device
+            }
+        }
+    }
+
     Timer {
         id: hideControlsTimer
         interval: window.hideControlsDelay
@@ -59,8 +79,8 @@ ApplicationWindow {
         }
     }
 
-
     Component.onCompleted: {
+        updateAudioDevice()
         var initialPath = MediaController.getInitialMediaPath()
         if (initialPath !== "") {
             Common.loadMedia(initialPath)
@@ -74,6 +94,7 @@ ApplicationWindow {
             id: audioOutput
             volume: volumeSlider.value
             muted: muteButton.checked
+            device: window.currentAudioOutput
         }
         videoOutput: Common.isVideo ? videoOutput : null
 
@@ -90,13 +111,6 @@ ApplicationWindow {
                 window.title = "MediaPlayer - Error loading media"
             }
         }
-
-        //onPlaybackStateChanged: {
-        //    // show overlay only when toggling play/pause, not on stop
-        //    if (playbackState === MediaPlayer.PlayingState || playbackState === MediaPlayer.PausedState) {
-        //        overlay.trigger()
-        //    }
-        //}
 
         onErrorOccurred: function(error, errorString) {
             console.log("Media error:", errorString)
@@ -179,7 +193,6 @@ ApplicationWindow {
 
         function trigger() { showAnim.restart() }
     }
-
 
     Item {
         anchors.fill: parent
@@ -450,19 +463,19 @@ ApplicationWindow {
                 Label {
                     text: MediaController.formatDuration(mediaPlayer.position)
                     opacity: 0.7
-                    font.pointSize: 9
+                    font.pointSize: 11
                 }
 
                 Label {
                     text: "/"
                     opacity: 0.5
-                    font.pointSize: 9
+                    font.pointSize: 11
                 }
 
                 Label {
                     text: MediaController.formatDuration(mediaPlayer.duration)
                     opacity: 0.7
-                    font.pointSize: 9
+                    font.pointSize: 11
                 }
 
                 Item { Layout.fillWidth: true }

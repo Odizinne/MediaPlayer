@@ -62,6 +62,7 @@ ApplicationWindow {
 
     function showControls() {
         controlsToolbar.opacity = 1.0
+        MediaController.setCursorState(MediaController.Normal)
         hideTimer.restart()
     }
 
@@ -70,6 +71,7 @@ ApplicationWindow {
         interval: 3000
         onTriggered: {
             controlsToolbar.opacity = 0.0
+            MediaController.setCursorState(MediaController.Hidden)
         }
     }
 
@@ -316,16 +318,6 @@ ApplicationWindow {
                 }
                 enabled: Common.currentMediaPath !== ""
             }
-
-            MouseArea {
-                anchors.fill: parent
-                acceptedButtons: Qt.RightButton
-                onClicked: function(mouse) {
-                    if (mouse.button === Qt.RightButton) {
-                        contextMenu.popup()
-                    }
-                }
-            }
         }
 
         Rectangle {
@@ -466,44 +458,6 @@ ApplicationWindow {
                 }
                 drop.accepted = false
             }
-        }
-    }
-
-    Menu {
-        id: contextMenu
-        opacity: Common.currentMediaPath !== "" ? 1 : 0
-
-        MenuItem {
-            text: "Copy media path"
-            enabled: Common.currentMediaPath !== ""
-            onTriggered: MediaController.copyPathToClipboard(Common.currentMediaPath)
-        }
-
-        MenuSeparator {}
-
-        MenuItem {
-            text: "Previous"
-            enabled: MediaController.hasPrevious || mediaPlayer.position > 5000
-            onTriggered: window.playPrevious()
-        }
-
-        MenuItem {
-            text: "Restart"
-            enabled: Common.currentMediaPath !== ""
-            onTriggered: mediaPlayer.setPosition(0)
-        }
-
-        MenuItem {
-            text: mediaPlayer.playbackState === MediaPlayer.PlayingState ? "Pause" : "Play"
-            enabled: Common.currentMediaPath !== ""
-            onTriggered: mediaPlayer.playbackState === MediaPlayer.PlayingState ?
-                             mediaPlayer.pause() : mediaPlayer.play()
-        }
-
-        MenuItem {
-            text: "Next"
-            enabled: MediaController.hasNext
-            onTriggered: window.playNext()
         }
     }
 

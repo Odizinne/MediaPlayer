@@ -1,4 +1,5 @@
 #include "mediacontroller.h"
+#include <QCursor>
 
 MediaController* MediaController::s_instance = nullptr;
 CoverArtImageProvider* MediaController::s_coverArtProvider = nullptr;
@@ -397,4 +398,16 @@ bool MediaController::isMediaFile(const QString &fileName) const
         }
     }
     return false;
+}
+
+void MediaController::setCursorState(CursorState state)
+{
+    switch (state) {
+    case Normal:
+        QGuiApplication::restoreOverrideCursor();
+        break;
+    case Hidden:
+        QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+        break;
+    }
 }

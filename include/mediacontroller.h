@@ -54,6 +54,14 @@ public:
     static MediaController* create(QQmlEngine *qmlEngine, QJSEngine *jsEngine);
     static MediaController* instance();
 
+    enum CursorState {
+        Normal,
+        Hidden
+    };
+    Q_ENUM(CursorState)
+
+    Q_INVOKABLE void setCursorState(CursorState state);
+
     Q_INVOKABLE QString getInitialMediaPath() const;
     Q_INVOKABLE QString formatDuration(qint64 milliseconds);
     Q_INVOKABLE QString getFileName(const QString &filePath);

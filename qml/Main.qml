@@ -27,7 +27,7 @@ ApplicationWindow {
     MediaDevices {
         id: mediaDevices
         onAudioOutputsChanged: {
-            updateAudioDevice()
+            window.updateAudioDevice()
         }
     }
 
@@ -37,6 +37,31 @@ ApplicationWindow {
             currentAudioOutput = device
             if (audioOutput) {
                 audioOutput.device = device
+            }
+        }
+    }
+
+    function playNext() {
+        var nextFile = MediaController.getNextFile()
+        console.log("Next file:", nextFile, "Has next:", MediaController.hasNext)
+        if (nextFile !== "") {
+            Common.loadMedia(nextFile)
+            mediaPlayer.source = nextFile
+        }
+    }
+
+    function playPrevious() {
+        // If media has played for more than 5 seconds, restart current file
+        if (mediaPlayer.position > 5000) {
+            mediaPlayer.setPosition(0)
+        } else {
+            var previousFile = MediaController.getPreviousFile()
+            if (previousFile !== "") {
+                Common.loadMedia(previousFile)
+                mediaPlayer.source = previousFile
+            } else {
+                // If no previous file, restart current
+                mediaPlayer.setPosition(0)
             }
         }
     }
@@ -79,6 +104,44 @@ ApplicationWindow {
         }
     }
 
+    Shortcut {
+        sequence: "Right"
+        onActivated: {
+            // Seek forward 10 seconds
+            var newPosition = mediaPlayer.position + 10000 // 10 seconds in milliseconds
+            if (newPosition > mediaPlayer.duration) {
+                newPosition = mediaPlayer.duration
+            }
+            mediaPlayer.setPosition(newPosition)
+        }
+    }
+
+    Shortcut {
+        sequence: "Left"
+        onActivated: {
+            // Seek backward 10 seconds
+            var newPosition = mediaPlayer.position - 10000 // 10 seconds in milliseconds
+            if (newPosition < 0) {
+                newPosition = 0
+            }
+            mediaPlayer.setPosition(newPosition)
+        }
+    }
+
+    Shortcut {
+        sequence: "Ctrl+Right"
+        onActivated: {
+            if (MediaController.hasNext) {
+                window.playNext()
+            }
+        }
+    }
+
+    Shortcut {
+        sequence: "Ctrl+Left"
+        onActivated: window.playPrevious()
+    }
+
     Component.onCompleted: {
         updateAudioDevice()
         var initialPath = MediaController.getInitialMediaPath()
@@ -104,11 +167,27 @@ ApplicationWindow {
                     Common.mediaWidth = videoOutput.sourceRect.width
                     Common.mediaHeight = videoOutput.sourceRect.height
                 }
-                window.title = Common.getFileName(Common.currentMediaPath) + " - MediaPlayer"
+                var fileName = Common.getFileName(Common.currentMediaPath)
+                var playlistInfo = ""
+                if (MediaController.playlistSize > 1) {
+                    playlistInfo = " (" + (MediaController.currentIndex + 1) + "/" + MediaController.playlistSize + ")"
+                }
+                window.title = fileName + playlistInfo + " - MediaPlayer"
                 mediaPlayer.play()  // Auto-play when media is loaded
+
+                // Debug playlist info
+                console.log("Loaded media. Playlist size:", MediaController.playlistSize,
+                            "Current index:", MediaController.currentIndex,
+                            "Has next:", MediaController.hasNext,
+                            "Has previous:", MediaController.hasPrevious)
+
+                MediaController.debugPlaylist()
             } else if (mediaStatus === MediaPlayer.InvalidMedia) {
                 console.log("Error loading media:", Common.currentMediaPath)
                 window.title = "MediaPlayer - Error loading media"
+            } else if (mediaStatus === MediaPlayer.EndOfMedia && MediaController.hasNext) {
+                // Auto-play next file when current file ends
+                window.playNext()
             }
         }
 
@@ -141,7 +220,14 @@ ApplicationWindow {
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             anchors.rightMargin: 10
-            text: Common.currentMediaPath !== "" ? Common.getFileName(Common.currentMediaPath) : ""
+            text: {
+                if (Common.currentMediaPath === "") return ""
+                var fileName = Common.getFileName(Common.currentMediaPath)
+                if (MediaController.playlistSize > 1) {
+                    return fileName + " (" + (MediaController.currentIndex + 1) + "/" + MediaController.playlistSize + ")"
+                }
+                return fileName
+            }
             width: Math.min(300, implicitWidth)
             elide: Text.ElideMiddle
             opacity: 0.5
@@ -167,8 +253,8 @@ ApplicationWindow {
         IconImage {
             anchors.fill: parent
             source: mediaPlayer.playbackState === MediaPlayer.PlayingState
-                        ? "qrc:/icons/pause.svg"
-                        : "qrc:/icons/play.svg"
+                    ? "qrc:/icons/pause.svg"
+                    : "qrc:/icons/play.svg"
             sourceSize.width: 80
             sourceSize.height: 80
             color: Universal.foreground
@@ -226,7 +312,7 @@ ApplicationWindow {
                 interval: 250
                 onTriggered: {
                     mediaPlayer.playbackState === MediaPlayer.PlayingState ?
-                        mediaPlayer.pause() : mediaPlayer.play()
+                                mediaPlayer.pause() : mediaPlayer.play()
                     overlay.trigger()
                     videoOutput.waitingForDoubleClick = false
                 }
@@ -294,6 +380,14 @@ ApplicationWindow {
                     text: MediaController.formatDuration(mediaPlayer.duration)
                     anchors.horizontalCenter: parent.horizontalCenter
                     opacity: 0.7
+                }
+
+                Label {
+                    text: MediaController.playlistSize > 1 ?
+                              (MediaController.currentIndex + 1) + " of " + MediaController.playlistSize : ""
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    opacity: 0.5
+                    font.pointSize: 12
                 }
             }
         }
@@ -370,6 +464,12 @@ ApplicationWindow {
         MenuSeparator {}
 
         MenuItem {
+            text: "Previous"
+            enabled: MediaController.hasPrevious || mediaPlayer.position > 5000
+            onTriggered: window.playPrevious()
+        }
+
+        MenuItem {
             text: "Restart"
             enabled: Common.currentMediaPath !== ""
             onTriggered: mediaPlayer.setPosition(0)
@@ -380,6 +480,12 @@ ApplicationWindow {
             enabled: Common.currentMediaPath !== ""
             onTriggered: mediaPlayer.playbackState === MediaPlayer.PlayingState ?
                              mediaPlayer.pause() : mediaPlayer.play()
+        }
+
+        MenuItem {
+            text: "Next"
+            enabled: MediaController.hasNext
+            onTriggered: window.playNext()
         }
     }
 
@@ -412,13 +518,22 @@ ApplicationWindow {
             RowLayout {
                 Layout.fillWidth: true
 
-                // Previous/Restart button
+                // Previous button
                 ToolButton {
                     icon.source: "qrc:/icons/prev.svg"
                     Layout.preferredWidth: height
-                    onClicked: mediaPlayer.setPosition(0)
+                    enabled: MediaController.hasPrevious || mediaPlayer.position > 5000
+                    onClicked: window.playPrevious()
                     ToolTip.visible: hovered
-                    ToolTip.text: "Restart"
+                    ToolTip.text: {
+                        if (mediaPlayer.position > 5000) {
+                            return "Restart"
+                        } else if (MediaController.hasPrevious) {
+                            return "Previous"
+                        } else {
+                            return "Restart"
+                        }
+                    }
                 }
 
                 // Play/Pause button
@@ -448,13 +563,14 @@ ApplicationWindow {
                     ToolTip.text: "Stop"
                 }
 
-                // Next button (placeholder - you can implement playlist logic later)
+                // Next button
                 ToolButton {
                     icon.source: "qrc:/icons/next.svg"
                     Layout.preferredWidth: height
-                    enabled: false // Disable for now since there's no playlist
+                    enabled: MediaController.hasNext
+                    onClicked: window.playNext()
                     ToolTip.visible: hovered
-                    ToolTip.text: "Next (coming soon)"
+                    ToolTip.text: MediaController.hasNext ? "Next" : "Next (no more files)"
                 }
 
                 Item { Layout.fillWidth: true }
@@ -463,19 +579,19 @@ ApplicationWindow {
                 Label {
                     text: MediaController.formatDuration(mediaPlayer.position)
                     opacity: 0.7
-                    font.pointSize: 11
+                    font.pointSize: 9
                 }
 
                 Label {
                     text: "/"
                     opacity: 0.5
-                    font.pointSize: 11
+                    font.pointSize: 9
                 }
 
                 Label {
                     text: MediaController.formatDuration(mediaPlayer.duration)
                     opacity: 0.7
-                    font.pointSize: 11
+                    font.pointSize: 9
                 }
 
                 Item { Layout.fillWidth: true }

@@ -1,6 +1,7 @@
 pragma Singleton
 
 import QtQuick
+import Odizinne.MediaPlayer
 
 Item {
     property string currentMediaPath: ""
@@ -13,11 +14,17 @@ Item {
     function loadMedia(mediaPath) {
         currentMediaPath = mediaPath
         mediaFileSize = MediaController.getFileSize(mediaPath)
-        
+
+        // Build playlist from the current file's directory
+        MediaController.buildPlaylistFromFile(mediaPath)
+
+        // Update current file in the playlist
+        MediaController.setCurrentFile(mediaPath)
+
         // Determine if it's a video file
         var path = mediaPath.toString().toLowerCase()
-        isVideo = path.includes('.mp4') || path.includes('.avi') || 
-                  path.includes('.mov') || path.includes('.mkv') || 
+        isVideo = path.includes('.mp4') || path.includes('.avi') ||
+                  path.includes('.mov') || path.includes('.mkv') ||
                   path.includes('.webm') || path.includes('.wmv') ||
                   path.includes('.m4v') || path.includes('.flv')
     }

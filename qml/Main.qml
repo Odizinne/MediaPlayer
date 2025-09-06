@@ -680,6 +680,15 @@ ApplicationWindow {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
 
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            acceptedButtons: Qt.NoButton
+            onPositionChanged: window.showControls()
+            onEntered: window.showControls()
+            propagateComposedEvents: true
+        }
+
         Behavior on opacity {
             NumberAnimation {
                 duration: 500

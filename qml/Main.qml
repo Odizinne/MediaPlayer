@@ -87,6 +87,7 @@ ApplicationWindow {
                 newVolume = 1.0
             }
             volumeSlider.value = newVolume
+            volumeIndicator.show() // Add this line
         }
     }
 
@@ -98,6 +99,7 @@ ApplicationWindow {
                 newVolume = 0.0
             }
             volumeSlider.value = newVolume
+            volumeIndicator.show() // Add this line
         }
     }
 
@@ -137,6 +139,7 @@ ApplicationWindow {
                 newPosition = mediaPlayer.duration
             }
             mediaPlayer.setPosition(newPosition)
+            forwardOverlay.trigger() // Add this line
         }
     }
 
@@ -148,6 +151,7 @@ ApplicationWindow {
                 newPosition = 0
             }
             mediaPlayer.setPosition(newPosition)
+            rewindOverlay.trigger() // Add this line
         }
     }
 
@@ -260,6 +264,179 @@ ApplicationWindow {
             elide: Text.ElideMiddle
             opacity: 0.5
         }
+    }
+
+    // Volume indicator overlay
+    Item {
+        id: volumeIndicator
+        anchors.centerIn: parent
+        height: volLyt.implicitHeight + 30
+        width: volLyt.implicitWidth + 30
+        z: 1001
+        opacity: 0.0
+
+        Rectangle {
+            anchors.fill: parent
+            color: Universal.background
+            height: volLyt.implicitHeight + 30
+            width: volLyt.implicitWidth + 30
+            opacity: 0.9
+
+            ColumnLayout {
+                id: volLyt
+                anchors.fill: parent
+                anchors.margins: 15
+                spacing: 10
+
+                IconImage {
+                    source: muteButton.checked ? "qrc:/icons/volume_mute.svg" : "qrc:/icons/volume.svg"
+                    sourceSize.width: 36
+                    sourceSize.height: 36
+                    color: Universal.foreground
+                    Layout.alignment: Qt.AlignHCenter
+                }
+
+                ProgressBar {
+                    from: 0
+                    to: 1
+                    value: volumeSlider.value
+                }
+            }
+        }
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 200
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        Timer {
+            id: volumeHideTimer
+            interval: 1500
+            onTriggered: volumeIndicator.opacity = 0.0
+        }
+
+        function show() {
+            opacity = 1.0
+            volumeHideTimer.restart()
+        }
+    }
+
+    // Rewind overlay
+    Item {
+        id: rewindOverlay
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.left: parent.left
+        anchors.leftMargin: parent.width / 4
+        width: 120
+        height: 120
+        z: 1000
+        opacity: 0.0
+        scale: 0.0
+
+        Rectangle {
+            anchors.fill: parent
+            color: Universal.background
+            opacity: 0.5
+            radius: width
+        }
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 5
+
+            IconImage {
+                anchors.horizontalCenter: parent.horizontalCenter
+                source: "qrc:/icons/rewind.svg"
+                sourceSize.width: 60
+                sourceSize.height: 60
+                color: Universal.foreground
+            }
+
+            Label {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "-10s"
+                color: Universal.foreground
+                font.pointSize: 12
+                font.bold: true
+            }
+        }
+
+        ParallelAnimation {
+            id: rewindAnim
+            running: false
+
+            SequentialAnimation {
+                PropertyAnimation { target: rewindOverlay; property: "scale"; from: 0.0; to: 0.25; duration: 150; easing.type: Easing.OutBack }
+                PropertyAnimation { target: rewindOverlay; property: "scale"; from: 0.25; to: 1.0; duration: 650; easing.type: Easing.OutCubic }
+            }
+
+            SequentialAnimation {
+                PropertyAnimation { target: rewindOverlay; property: "opacity"; from: 0; to: 1; duration: 150; easing.type: Easing.InQuad }
+                PropertyAnimation { target: rewindOverlay; property: "opacity"; from: 1; to: 0; duration: 650; easing.type: Easing.OutQuad }
+            }
+        }
+
+        function trigger() { rewindAnim.restart() }
+    }
+
+    // Forward overlay
+    Item {
+        id: forwardOverlay
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.right: parent.right
+        anchors.rightMargin: parent.width / 4
+        width: 120
+        height: 120
+        z: 1000
+        opacity: 0.0
+        scale: 0.0
+
+        Rectangle {
+            anchors.fill: parent
+            color: Universal.background
+            opacity: 0.5
+            radius: width
+        }
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 5
+
+            IconImage {
+                anchors.horizontalCenter: parent.horizontalCenter
+                source: "qrc:/icons/forward.svg"
+                sourceSize.width: 60
+                sourceSize.height: 60
+                color: Universal.foreground
+            }
+
+            Label {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "+10s"
+                color: Universal.foreground
+                font.pointSize: 12
+                font.bold: true
+            }
+        }
+
+        ParallelAnimation {
+            id: forwardAnim
+            running: false
+
+            SequentialAnimation {
+                PropertyAnimation { target: forwardOverlay; property: "scale"; from: 0.0; to: 0.25; duration: 150; easing.type: Easing.OutBack }
+                PropertyAnimation { target: forwardOverlay; property: "scale"; from: 0.25; to: 1.0; duration: 650; easing.type: Easing.OutCubic }
+            }
+
+            SequentialAnimation {
+                PropertyAnimation { target: forwardOverlay; property: "opacity"; from: 0; to: 1; duration: 150; easing.type: Easing.InQuad }
+                PropertyAnimation { target: forwardOverlay; property: "opacity"; from: 1; to: 0; duration: 650; easing.type: Easing.OutQuad }
+            }
+        }
+
+        function trigger() { forwardAnim.restart() }
     }
 
     Item {
@@ -520,7 +697,7 @@ ApplicationWindow {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
-            anchors.margins: 10  // Changed from 20 to 10
+            anchors.margins: 10
             from: 0
             to: Math.max(mediaPlayer.duration, 1)
             value: mediaPlayer.position
@@ -544,6 +721,21 @@ ApplicationWindow {
                     } else {
                         mediaPlayer.pause()
                     }
+                }
+            }
+
+            ToolTip {
+                visible: progressSlider.pressed
+                text: MediaController.formatDuration(progressSlider.value) + " / " + MediaController.formatDuration(mediaPlayer.duration)
+                x: progressSlider.handle.x + progressSlider.handle.width / 2 - width / 2
+                y: progressSlider.handle.y - height - 10
+
+                enter: Transition {
+                    NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 100; easing.type: Easing.InQuad }
+                }
+
+                exit: Transition {
+                    NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 100; easing.type: Easing.OutQuad }
                 }
             }
 

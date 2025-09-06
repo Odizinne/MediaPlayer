@@ -701,19 +701,27 @@ ApplicationWindow {
             onPressedChanged: {
                 window.showControls()
 
-                if (pressed && mediaPlayer.playing) {
-                    mediaPlayer.pause()
-                    wasPlaying = true
-                } else if (pressed && !mediaPlayer.playing) {
-                    wasPlaying = false
-                }
+                if (pressed) {
+                    // Stop the hide timer while dragging
+                    hideTimer.stop()
 
-                if (!pressed && mediaPlayer.duration > 0) {
-                    mediaPlayer.setPosition(value)
-                    if (wasPlaying) {
-                        mediaPlayer.play()
-                    } else {
+                    if (mediaPlayer.playing) {
                         mediaPlayer.pause()
+                        wasPlaying = true
+                    } else {
+                        wasPlaying = false
+                    }
+                } else {
+                    // Resume hide timer when done dragging
+                    hideTimer.restart()
+
+                    if (mediaPlayer.duration > 0) {
+                        mediaPlayer.setPosition(value)
+                        if (wasPlaying) {
+                            mediaPlayer.play()
+                        } else {
+                            mediaPlayer.pause()
+                        }
                     }
                 }
             }
@@ -891,7 +899,18 @@ ApplicationWindow {
                 from: 0
                 to: 1
                 value: 1
-                onPressedChanged: if (pressed) window.showControls()
+
+                onPressedChanged: {
+                    if (pressed) {
+                        window.showControls()
+                        // Stop the hide timer while dragging volume
+                        hideTimer.stop()
+                    } else {
+                        // Resume hide timer when done dragging
+                        hideTimer.restart()
+                    }
+                }
+
                 onHoveredChanged: if (hovered) window.showControls()
                 ToolTip.visible: hovered
                 ToolTip.text: "Volume: " + Math.round(value * 100) + "%"

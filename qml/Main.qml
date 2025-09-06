@@ -266,43 +266,14 @@ ApplicationWindow {
         }
     }
 
-    // Volume indicator overlay
-    Item {
-        id: volumeIndicator
-        anchors.centerIn: parent
-        height: volLyt.implicitHeight + 30
-        width: volLyt.implicitWidth + 30
+    VolumeIndicator {
         z: 1001
         opacity: 0.0
-
-        Rectangle {
-            anchors.fill: parent
-            color: Universal.background
-            height: volLyt.implicitHeight + 30
-            width: volLyt.implicitWidth + 30
-            opacity: 0.9
-
-            ColumnLayout {
-                id: volLyt
-                anchors.fill: parent
-                anchors.margins: 15
-                spacing: 10
-
-                IconImage {
-                    source: muteButton.checked || volumeSlider.value === 0 ? "qrc:/icons/volume_mute.svg" : "qrc:/icons/volume.svg"
-                    sourceSize.width: 36
-                    sourceSize.height: 36
-                    color: Universal.foreground
-                    Layout.alignment: Qt.AlignHCenter
-                }
-
-                ProgressBar {
-                    from: 0
-                    to: 1
-                    value: volumeSlider.value
-                }
-            }
-        }
+        id: volumeIndicator
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.margins: 20
+        value: volumeSlider.value
 
         Behavior on opacity {
             NumberAnimation {

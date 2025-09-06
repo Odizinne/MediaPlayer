@@ -411,3 +411,14 @@ void MediaController::setCursorState(CursorState state)
         break;
     }
 }
+
+void MediaController::setPreventSleep(bool prevent)
+{
+    if (prevent && !m_sleepPrevented) {
+        SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
+        m_sleepPrevented = true;
+    } else if (!prevent && m_sleepPrevented) {
+        SetThreadExecutionState(ES_CONTINUOUS);
+        m_sleepPrevented = false;
+    }
+}

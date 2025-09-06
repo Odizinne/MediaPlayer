@@ -19,6 +19,7 @@
 #include <QMediaMetaData>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include <Windows.h>
 
 class CoverArtImageProvider : public QQuickImageProvider
 {
@@ -77,6 +78,8 @@ public:
     Q_INVOKABLE void setCurrentFile(const QString &filePath);
     Q_INVOKABLE void debugPlaylist() const;
 
+    Q_INVOKABLE void setPreventSleep(bool prevent);
+
     // Property getters
     bool hasNext() const;
     bool hasPrevious() const;
@@ -120,6 +123,7 @@ private:
     QStringList getSupportedMediaFiles(const QDir &directory) const;
     bool isMediaFile(const QString &fileName) const;
     void extractMetadataFromFile(const QString &filePath);
+    bool m_sleepPrevented = false;
 };
 
 #endif // MEDIACONTROLLER_H

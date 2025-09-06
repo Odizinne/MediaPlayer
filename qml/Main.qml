@@ -20,6 +20,10 @@ ApplicationWindow {
     // Audio device tracking
     property var currentAudioOutput: null
 
+    Component.onDestruction: {
+        MediaController.setPreventSleep(false)
+    }
+
     MediaDevices {
         id: mediaDevices
         onAudioOutputsChanged: {
@@ -72,6 +76,28 @@ ApplicationWindow {
         onTriggered: {
             controlsToolbar.opacity = 0.0
             MediaController.setCursorState(MediaController.Hidden)
+        }
+    }
+
+    Shortcut {
+        sequence: "Up"
+        onActivated: {
+            var newVolume = volumeSlider.value + 0.05
+            if (newVolume > 1.0) {
+                newVolume = 1.0
+            }
+            volumeSlider.value = newVolume
+        }
+    }
+
+    Shortcut {
+        sequence: "Down"
+        onActivated: {
+            var newVolume = volumeSlider.value - 0.05
+            if (newVolume < 0.0) {
+                newVolume = 0.0
+            }
+            volumeSlider.value = newVolume
         }
     }
 
@@ -158,6 +184,10 @@ ApplicationWindow {
         }
         videoOutput: Common.isVideo ? videoOutput : null
 
+        onPlaybackStateChanged: {
+            MediaController.setPreventSleep(playbackState === MediaPlayer.PlayingState)
+        }
+
         onMediaStatusChanged: {
             if (mediaStatus === MediaPlayer.LoadedMedia) {
                 if (Common.isVideo && videoOutput.sourceRect.width > 0) {
@@ -176,13 +206,16 @@ ApplicationWindow {
                             "Current index:", MediaController.currentIndex,
                             "Has next:", MediaController.hasNext,
                             "Has previous:", MediaController.hasPrevious)
-
                 MediaController.debugPlaylist()
             } else if (mediaStatus === MediaPlayer.InvalidMedia) {
                 console.log("Error loading media:", Common.currentMediaPath)
                 window.title = "MediaPlayer - Error loading media"
+                MediaController.setPreventSleep(false)
             } else if (mediaStatus === MediaPlayer.EndOfMedia && MediaController.hasNext) {
                 window.playNext()
+            } else if (mediaStatus === MediaPlayer.EndOfMedia) {
+                // No next file, disable sleep prevention
+                MediaController.setPreventSleep(false)
             }
         }
 

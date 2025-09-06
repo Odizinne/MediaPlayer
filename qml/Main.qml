@@ -289,7 +289,7 @@ ApplicationWindow {
                 spacing: 10
 
                 IconImage {
-                    source: muteButton.checked ? "qrc:/icons/volume_mute.svg" : "qrc:/icons/volume.svg"
+                    source: muteButton.checked || volumeSlider.value === 0 ? "qrc:/icons/volume_mute.svg" : "qrc:/icons/volume.svg"
                     sourceSize.width: 36
                     sourceSize.height: 36
                     color: Universal.foreground
@@ -889,7 +889,7 @@ ApplicationWindow {
 
             ToolButton {
                 id: muteButton
-                icon.source: checked ? "qrc:/icons/volume_mute.svg" : "qrc:/icons/volume.svg"
+                icon.source: checked || volumeSlider.value === 0 ? "qrc:/icons/volume_mute.svg" : "qrc:/icons/volume.svg"
                 checkable: true
                 width: 48
                 height: 48

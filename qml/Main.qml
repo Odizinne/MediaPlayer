@@ -304,7 +304,7 @@ ApplicationWindow {
         height: 120
         z: 1000
         opacity: 0.0
-        scale: 0.0
+        scale: 1.0
 
         Rectangle {
             anchors.fill: parent
@@ -334,22 +334,29 @@ ApplicationWindow {
             }
         }
 
-        ParallelAnimation {
-            id: rewindAnim
-            running: false
-
-            SequentialAnimation {
-                PropertyAnimation { target: rewindOverlay; property: "scale"; from: 0.0; to: 0.25; duration: 150; easing.type: Easing.OutBack }
-                PropertyAnimation { target: rewindOverlay; property: "scale"; from: 0.25; to: 1.0; duration: 650; easing.type: Easing.OutCubic }
-            }
-
-            SequentialAnimation {
-                PropertyAnimation { target: rewindOverlay; property: "opacity"; from: 0; to: 1; duration: 150; easing.type: Easing.InQuad }
-                PropertyAnimation { target: rewindOverlay; property: "opacity"; from: 1; to: 0; duration: 650; easing.type: Easing.OutQuad }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 200
+                easing.type: Easing.InOutQuad
             }
         }
 
-        function trigger() { rewindAnim.restart() }
+        Timer {
+            id: rewindHideTimer
+            interval: 1500
+            onTriggered: rewindOverlay.opacity = 0.0
+        }
+
+        function trigger() {
+            // Hide the forward overlay if it's visible
+            if (forwardOverlay.opacity > 0) {
+                forwardHideTimer.stop()
+                forwardOverlay.opacity = 0.0
+            }
+
+            opacity = 1.0
+            rewindHideTimer.restart()
+        }
     }
 
     // Forward overlay
@@ -362,7 +369,7 @@ ApplicationWindow {
         height: 120
         z: 1000
         opacity: 0.0
-        scale: 0.0
+        scale: 1.0
 
         Rectangle {
             anchors.fill: parent
@@ -392,22 +399,29 @@ ApplicationWindow {
             }
         }
 
-        ParallelAnimation {
-            id: forwardAnim
-            running: false
-
-            SequentialAnimation {
-                PropertyAnimation { target: forwardOverlay; property: "scale"; from: 0.0; to: 0.25; duration: 150; easing.type: Easing.OutBack }
-                PropertyAnimation { target: forwardOverlay; property: "scale"; from: 0.25; to: 1.0; duration: 650; easing.type: Easing.OutCubic }
-            }
-
-            SequentialAnimation {
-                PropertyAnimation { target: forwardOverlay; property: "opacity"; from: 0; to: 1; duration: 150; easing.type: Easing.InQuad }
-                PropertyAnimation { target: forwardOverlay; property: "opacity"; from: 1; to: 0; duration: 650; easing.type: Easing.OutQuad }
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 200
+                easing.type: Easing.InOutQuad
             }
         }
 
-        function trigger() { forwardAnim.restart() }
+        Timer {
+            id: forwardHideTimer
+            interval: 1500
+            onTriggered: forwardOverlay.opacity = 0.0
+        }
+
+        function trigger() {
+            // Hide the rewind overlay if it's visible
+            if (rewindOverlay.opacity > 0) {
+                rewindHideTimer.stop()
+                rewindOverlay.opacity = 0.0
+            }
+
+            opacity = 1.0
+            forwardHideTimer.restart()
+        }
     }
 
     Item {

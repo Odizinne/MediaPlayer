@@ -108,6 +108,14 @@ ApplicationWindow {
     }
 
     Shortcut {
+        sequence: "M"
+        onActivated: {
+            muteButton.checked = !muteButton.checked
+            volumeIndicator.show()
+        }
+    }
+
+    Shortcut {
         sequence: "Up"
         onActivated: {
             var newVolume = volumeSlider.value + 0.05

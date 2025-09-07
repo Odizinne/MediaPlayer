@@ -20,6 +20,7 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <Windows.h>
+#include "windowspowereventfilter.h"
 
 class CoverArtImageProvider : public QQuickImageProvider
 {
@@ -95,6 +96,7 @@ public:
 signals:
     void playlistChanged();
     void metadataChanged();
+    void systemResumed();
 
 private slots:
     void onMetadataChanged();
@@ -124,6 +126,7 @@ private:
     bool isMediaFile(const QString &fileName) const;
     void extractMetadataFromFile(const QString &filePath);
     bool m_sleepPrevented = false;
+    WindowsPowerEventFilter* m_powerEventFilter;
 };
 
 #endif // MEDIACONTROLLER_H

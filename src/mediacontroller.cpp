@@ -78,6 +78,10 @@ MediaController::MediaController(QObject *parent)
             m_initialMediaPath = QUrl::fromLocalFile(fileInfo.absoluteFilePath()).toString();
         }
     }
+
+    m_powerEventFilter = new WindowsPowerEventFilter(this);
+    connect(m_powerEventFilter, &WindowsPowerEventFilter::systemResumed,
+            this, &MediaController::systemResumed);
 }
 
 MediaController* MediaController::create(QQmlEngine *qmlEngine, QJSEngine *jsEngine)

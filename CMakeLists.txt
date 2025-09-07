@@ -59,6 +59,7 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
     QML_FILES ${QML_FILES} ${QML_SINGLETONS}
     QML_FILES qml/VerticalProgressBar.qml
     QML_FILES qml/VolumeIndicator.qml
+    SOURCES include/windowspowereventfilter.h src/windowspowereventfilter.cpp
 )
 
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES

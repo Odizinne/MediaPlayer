@@ -24,6 +24,35 @@ ApplicationWindow {
         MediaController.setPreventSleep(false)
     }
 
+    Connections {
+        target: MediaController
+        function onSystemResumed() {
+            Qt.callLater(performAudioRecovery)
+        }
+    }
+
+    function performAudioRecovery() {
+        try {
+            updateAudioDevice()
+
+            audioOutputLoader.active = false
+            audioOutputLoader.active = true
+        } catch (error) {
+            console.log("Error in Loader-based recovery:", error)
+        }
+    }
+
+    Loader {
+        id: audioOutputLoader
+        sourceComponent: Component {
+            AudioOutput {
+                device: window.currentAudioOutput
+                volume: volumeSlider.value
+                muted: muteButton.checked
+            }
+        }
+    }
+
     MediaDevices {
         id: mediaDevices
         onAudioOutputsChanged: {
@@ -35,15 +64,14 @@ ApplicationWindow {
         const device = mediaDevices.defaultAudioOutput
         if (device.id !== (currentAudioOutput ? currentAudioOutput.id : "")) {
             currentAudioOutput = device
-            if (audioOutput) {
-                audioOutput.device = device
+            if (audioOutputLoader.item) {
+                audioOutputLoader.item.device = device
             }
         }
     }
 
     function playNext() {
         var nextFile = MediaController.getNextFile()
-        console.log("Next file:", nextFile, "Has next:", MediaController.hasNext)
         if (nextFile !== "") {
             Common.loadMedia(nextFile)
             mediaPlayer.source = nextFile
@@ -87,7 +115,7 @@ ApplicationWindow {
                 newVolume = 1.0
             }
             volumeSlider.value = newVolume
-            volumeIndicator.show() // Add this line
+            volumeIndicator.show()
         }
     }
 
@@ -99,7 +127,7 @@ ApplicationWindow {
                 newVolume = 0.0
             }
             volumeSlider.value = newVolume
-            volumeIndicator.show() // Add this line
+            volumeIndicator.show()
         }
     }
 
@@ -139,7 +167,7 @@ ApplicationWindow {
                 newPosition = mediaPlayer.duration
             }
             mediaPlayer.setPosition(newPosition)
-            forwardOverlay.trigger() // Add this line
+            forwardOverlay.trigger()
         }
     }
 
@@ -151,7 +179,7 @@ ApplicationWindow {
                 newPosition = 0
             }
             mediaPlayer.setPosition(newPosition)
-            rewindOverlay.trigger() // Add this line
+            rewindOverlay.trigger()
         }
     }
 
@@ -180,12 +208,7 @@ ApplicationWindow {
 
     MediaPlayer {
         id: mediaPlayer
-        audioOutput: AudioOutput {
-            id: audioOutput
-            volume: volumeSlider.value
-            muted: muteButton.checked
-            device: window.currentAudioOutput
-        }
+        audioOutput: audioOutputLoader.item
         videoOutput: Common.isVideo ? videoOutput : null
 
         onPlaybackStateChanged: {
@@ -206,10 +229,6 @@ ApplicationWindow {
                 window.title = fileName + playlistInfo + " - MediaPlayer"
                 mediaPlayer.play()
 
-                console.log("Loaded media. Playlist size:", MediaController.playlistSize,
-                            "Current index:", MediaController.currentIndex,
-                            "Has next:", MediaController.hasNext,
-                            "Has previous:", MediaController.hasPrevious)
                 MediaController.debugPlaylist()
             } else if (mediaStatus === MediaPlayer.InvalidMedia) {
                 console.log("Error loading media:", Common.currentMediaPath)
@@ -702,7 +721,6 @@ ApplicationWindow {
                 window.showControls()
 
                 if (pressed) {
-                    // Stop the hide timer while dragging
                     hideTimer.stop()
 
                     if (mediaPlayer.playing) {
@@ -712,7 +730,6 @@ ApplicationWindow {
                         wasPlaying = false
                     }
                 } else {
-                    // Resume hide timer when done dragging
                     hideTimer.restart()
 
                     if (mediaPlayer.duration > 0) {
@@ -754,7 +771,7 @@ ApplicationWindow {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: 15
-            anchors.verticalCenterOffset: 20  // Changed from 10 to 20 (more toward bottom)
+            anchors.verticalCenterOffset: 20
             spacing: 8
 
             Label {
@@ -780,7 +797,7 @@ ApplicationWindow {
         Row {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
-            anchors.verticalCenterOffset: 20  // Changed from 10 to 20 (more toward bottom)
+            anchors.verticalCenterOffset: 20
             spacing: 6
 
             ToolButton {
@@ -886,6 +903,9 @@ ApplicationWindow {
                 checkable: true
                 width: 48
                 height: 48
+
+                // Remove onCheckedChanged - let the binding in Loader handle it
+
                 onClicked: window.showControls()
                 onHoveredChanged: if (hovered) window.showControls()
                 ToolTip.visible: hovered
@@ -900,13 +920,13 @@ ApplicationWindow {
                 to: 1
                 value: 1
 
+                // Remove onValueChanged - let the binding in Loader handle it
+
                 onPressedChanged: {
                     if (pressed) {
                         window.showControls()
-                        // Stop the hide timer while dragging volume
                         hideTimer.stop()
                     } else {
-                        // Resume hide timer when done dragging
                         hideTimer.restart()
                     }
                 }

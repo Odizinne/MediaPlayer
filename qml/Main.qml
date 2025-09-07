@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Universal
 import QtQuick.Controls.impl
-import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtMultimedia
 import Odizinne.MediaPlayer
@@ -28,6 +27,23 @@ ApplicationWindow {
         target: MediaController
         function onSystemResumed() {
             Qt.callLater(performAudioRecovery)
+        }
+    }
+
+    Connections {
+        target: mediaPlayer
+        function onPlaybackStateChanged() {
+            if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
+                // When playback starts, begin auto-hide timer if in fullscreen
+                if (window.visibility === Window.FullScreen) {
+                    hideTimer.restart()
+                }
+            } else {
+                // When paused/stopped, stop the hide timer and show controls
+                hideTimer.stop()
+                controlsToolbar.opacity = 1.0
+                MediaController.setCursorState(MediaController.Normal)
+            }
         }
     }
 
@@ -95,7 +111,12 @@ ApplicationWindow {
     function showControls() {
         controlsToolbar.opacity = 1.0
         MediaController.setCursorState(MediaController.Normal)
-        hideTimer.restart()
+
+        if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
+            hideTimer.restart()
+        } else {
+            hideTimer.stop()
+        }
     }
 
     Timer {

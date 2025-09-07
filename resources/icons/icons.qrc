@@ -13,6 +13,7 @@
         <file>music.svg</file>
         <file>forward.svg</file>
         <file>rewind.svg</file>
+        <file>sleep.svg</file>
         <file>icon.png</file>
     </qresource>
 </RCC>

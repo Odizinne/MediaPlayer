@@ -234,11 +234,14 @@ ApplicationWindow {
                 console.log("Error loading media:", Common.currentMediaPath)
                 window.title = "MediaPlayer - Error loading media"
                 MediaController.setPreventSleep(false)
-            } else if (mediaStatus === MediaPlayer.EndOfMedia && MediaController.hasNext) {
-                window.playNext()
             } else if (mediaStatus === MediaPlayer.EndOfMedia) {
-                // No next file, disable sleep prevention
                 MediaController.setPreventSleep(false)
+
+                if (sleepButton.checked && MediaController.hasNext) {
+                    continuePlayingDialog.open()
+                } else if (MediaController.hasNext) {
+                    window.playNext()
+                }
             }
         }
 
@@ -675,6 +678,43 @@ ApplicationWindow {
         }
     }
 
+    Dialog {
+        id: continuePlayingDialog
+        title: "Continue Playing?"
+        anchors.centerIn: parent
+        modal: true
+
+        onAboutToShow: {
+            window.showControls()
+            hideTimer.stop()
+        }
+
+        onAccepted: {
+            window.playNext()
+        }
+
+        onClosed: {
+            // Restart the hide timer after dialog closes
+            if (window.visibility === Window.FullScreen) {
+                hideTimer.restart()
+            }
+        }
+
+        footer: DialogButtonBox {
+            Button {
+                text: "Yes"
+                highlighted: true
+                DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
+                onClicked: continuePlayingDialog.accept()
+            }
+            Button {
+                text: "No"
+                DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
+                onClicked: continuePlayingDialog.reject()
+            }
+        }
+    }
+
     ToolBar {
         id: controlsToolbar
         visible: Common.currentMediaPath !== ""
@@ -768,6 +808,7 @@ ApplicationWindow {
 
         // Time labels row (left side)
         Row {
+            id: timeRow
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
             anchors.leftMargin: 15
@@ -793,7 +834,21 @@ ApplicationWindow {
             }
         }
 
-        // Media control buttons row (centered)
+        ToolButton {
+            id: sleepButton
+            anchors.left: timeRow.right
+            anchors.leftMargin: 10
+            anchors.verticalCenter: timeRow.verticalCenter
+            icon.source: "qrc:/icons/sleep.svg"
+            width: 32
+            height: 32
+            checkable: true
+            onClicked: window.showControls()
+            onHoveredChanged: if (hovered) window.showControls()
+            ToolTip.visible: hovered
+            ToolTip.text: checked ? "Sleep mode: ON (will ask before playing next)" : "Sleep mode: OFF"
+        }
+
         Row {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter

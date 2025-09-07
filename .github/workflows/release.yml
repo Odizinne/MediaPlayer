@@ -23,7 +23,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: build.yml
           workflow_conclusion: success
-          name: MediaPlayer_win64_msvc2022
+          name: MediaPlayer_win64_mingw
           run_id: ${{ inputs.workflow_run_id }}
           if_no_artifact_found: fail
 
@@ -61,8 +61,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: MediaPlayer_win64_msvc2022.zip
-          asset_name: MediaPlayer_win64_msvc2022.zip
+          asset_path: MediaPlayer_win64_mingw.zip
+          asset_name: MediaPlayer_win64_mingw.zip
           asset_content_type: application/zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

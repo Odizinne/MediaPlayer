@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir -p build
           cd build
-          cmake ..
+          cmake .. -G "MinGW Makefiles"
           cmake --build . --config Release
           cmake --install . --config Release
 

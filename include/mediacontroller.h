@@ -40,13 +40,10 @@ class MediaController : public QObject
     QML_ELEMENT
     QML_SINGLETON
 
-    // Playlist properties for QML binding
     Q_PROPERTY(bool hasNext READ hasNext NOTIFY playlistChanged)
     Q_PROPERTY(bool hasPrevious READ hasPrevious NOTIFY playlistChanged)
     Q_PROPERTY(int currentIndex READ getCurrentIndex NOTIFY playlistChanged)
     Q_PROPERTY(int playlistSize READ getPlaylistSize NOTIFY playlistChanged)
-
-    // Audio metadata properties
     Q_PROPERTY(QString currentTitle READ getCurrentTitle NOTIFY metadataChanged)
     Q_PROPERTY(QString currentArtist READ getCurrentArtist NOTIFY metadataChanged)
     Q_PROPERTY(QString currentAlbum READ getCurrentAlbum NOTIFY metadataChanged)
@@ -63,7 +60,6 @@ public:
     Q_ENUM(CursorState)
 
     Q_INVOKABLE void setCursorState(CursorState state);
-
     Q_INVOKABLE QString getInitialMediaPath() const;
     Q_INVOKABLE QString formatDuration(qint64 milliseconds);
     Q_INVOKABLE QString getFileName(const QString &filePath);
@@ -71,23 +67,17 @@ public:
     Q_INVOKABLE QString formatFileSize(qint64 bytes);
     Q_INVOKABLE void copyPathToClipboard(const QString &filePath);
     Q_INVOKABLE void loadMediaMetadata(const QString &filePath);
-
-    // Playlist functions
     Q_INVOKABLE void buildPlaylistFromFile(const QString &filePath);
     Q_INVOKABLE QString getNextFile() const;
     Q_INVOKABLE QString getPreviousFile() const;
     Q_INVOKABLE void setCurrentFile(const QString &filePath);
-    Q_INVOKABLE void debugPlaylist() const;
-
     Q_INVOKABLE void setPreventSleep(bool prevent);
 
-    // Property getters
     bool hasNext() const;
     bool hasPrevious() const;
     int getCurrentIndex() const;
     int getPlaylistSize() const;
 
-    // Metadata getters
     QString getCurrentTitle() const { return m_currentTitle; }
     QString getCurrentArtist() const { return m_currentArtist; }
     QString getCurrentAlbum() const { return m_currentAlbum; }
@@ -107,11 +97,9 @@ private:
     static MediaController* s_instance;
     QString m_initialMediaPath;
 
-    // Playlist data
     QStringList m_playlist;
     int m_currentIndex;
 
-    // Metadata extraction
     QMediaPlayer* m_metadataPlayer;
     QAudioOutput* m_metadataAudioOutput;
     QString m_currentTitle;
@@ -119,7 +107,6 @@ private:
     QString m_currentAlbum;
     QString m_currentCoverArtUrl;
 
-    // Cover art provider
     static CoverArtImageProvider* s_coverArtProvider;
 
     QStringList getSupportedMediaFiles(const QDir &directory) const;

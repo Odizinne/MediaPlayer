@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(MediaPlayer VERSION 0.1.0 LANGUAGES CXX)
+project(MediaPlayer VERSION 0.2.0 LANGUAGES CXX)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Installation directory" FORCE)
 set(CMAKE_CXX_STANDARD 20)
@@ -16,10 +16,12 @@ qt_standard_project_setup(REQUIRES 6.8)
 
 set(HEADERS
     include/mediacontroller.h
+    include/windowspowereventfilter.h
 )
 
 set(SOURCES
     src/mediacontroller.cpp
+    src/windowspowereventfilter.cpp
     src/main.cpp
 )
 
@@ -43,6 +45,8 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 set(QML_FILES
     qml/Main.qml
+    qml/VerticalProgressBar.qml
+    qml/VolumeIndicator.qml
 )
 
 set(QML_SINGLETONS
@@ -57,9 +61,6 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
     URI Odizinne.${CMAKE_PROJECT_NAME}
     VERSION 1.0
     QML_FILES ${QML_FILES} ${QML_SINGLETONS}
-    QML_FILES qml/VerticalProgressBar.qml
-    QML_FILES qml/VolumeIndicator.qml
-    SOURCES include/windowspowereventfilter.h src/windowspowereventfilter.cpp
 )
 
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES

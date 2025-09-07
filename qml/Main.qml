@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls.Universal
 import QtQuick.Controls.impl
@@ -16,7 +18,6 @@ ApplicationWindow {
     Universal.theme: Universal.System
     Universal.accent: palette.highlight
 
-    // Audio device tracking
     property var currentAudioOutput: null
 
     Component.onDestruction: {
@@ -26,7 +27,7 @@ ApplicationWindow {
     Connections {
         target: MediaController
         function onSystemResumed() {
-            Qt.callLater(performAudioRecovery)
+            Qt.callLater(window.performAudioRecovery)
         }
     }
 
@@ -237,7 +238,7 @@ ApplicationWindow {
 
     MediaPlayer {
         id: mediaPlayer
-        audioOutput: audioOutputLoader.item
+        audioOutput: audioOutputLoader.item as AudioOutput
         videoOutput: Common.isVideo ? videoOutput : null
 
         onPlaybackStateChanged: {
@@ -257,8 +258,6 @@ ApplicationWindow {
                 }
                 window.title = fileName + playlistInfo + " - MediaPlayer"
                 mediaPlayer.play()
-
-                MediaController.debugPlaylist()
             } else if (mediaStatus === MediaPlayer.InvalidMedia) {
                 console.log("Error loading media:", Common.currentMediaPath)
                 window.title = "MediaPlayer - Error loading media"

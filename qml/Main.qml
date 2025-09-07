@@ -546,6 +546,56 @@ ApplicationWindow {
         }
 
         VideoOutput {
+            ContextMenu.menu: Menu {
+                enter: Transition {
+                    NumberAnimation {
+                        property: "opacity"
+                        from: 0
+                        to: 1
+                        duration: 150
+                        easing.type: Easing.OutQuad
+                    }
+                    NumberAnimation {
+                        property: "scale"
+                        from: 0.95
+                        to: 1.0
+                        duration: 150
+                        easing.type: Easing.OutQuad
+                    }
+                }
+
+                exit: Transition {
+                    NumberAnimation {
+                        property: "opacity"
+                        from: 1
+                        to: 0
+                        duration: 100
+                        easing.type: Easing.InQuad
+                    }
+                    NumberAnimation {
+                        property: "scale"
+                        from: 1.0
+                        to: 0.95
+                        duration: 100
+                        easing.type: Easing.InQuad
+                    }
+                }
+                MenuItem {
+                    text: qsTr("Copy File Path")
+                    enabled: Common.currentMediaPath !== ""
+                    onTriggered: MediaController.copyFilePathToClipboard(Common.currentMediaPath)
+                }
+                MenuItem {
+                    text: qsTr("Open in Explorer")
+                    enabled: Common.currentMediaPath !== ""
+                    onTriggered: MediaController.openInExplorer(Common.currentMediaPath)
+                }
+                MenuSeparator {}
+                MenuItem {
+                   text: window.visibility === Window.FullScreen ? qsTr("Exit Fullscreen") : qsTr("Enter Fullscreen")
+                   onTriggered: window.toggleFullscreen()
+                }
+            }
             id: videoOutput
             anchors.fill: parent
             visible: Common.isVideo && Common.currentMediaPath !== ""

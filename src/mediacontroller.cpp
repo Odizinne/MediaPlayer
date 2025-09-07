@@ -1,5 +1,6 @@
 #include "mediacontroller.h"
 #include <QCursor>
+#include <QProcess>
 
 MediaController* MediaController::s_instance = nullptr;
 CoverArtImageProvider* MediaController::s_coverArtProvider = nullptr;
@@ -373,4 +374,32 @@ void MediaController::setPreventSleep(bool prevent)
         SetThreadExecutionState(ES_CONTINUOUS);
         m_sleepPrevented = false;
     }
+}
+
+void MediaController::copyFilePathToClipboard(const QString &filePath)
+{
+    QString localPath = filePath;
+    if (localPath.startsWith("file://")) {
+        localPath = QUrl(localPath).toLocalFile();
+    }
+
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    clipboard->setText(localPath);
+}
+
+void MediaController::openInExplorer(const QString &filePath)
+{
+    QString localPath = filePath;
+    if (localPath.startsWith("file://")) {
+        localPath = QUrl(localPath).toLocalFile();
+    }
+
+    QFileInfo fileInfo(localPath);
+    if (!fileInfo.exists()) {
+        return;
+    }
+
+    QStringList args;
+    args << "/select," << QDir::toNativeSeparators(localPath);
+    QProcess::startDetached("explorer", args);
 }

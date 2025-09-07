@@ -72,6 +72,8 @@ public:
     Q_INVOKABLE QString getPreviousFile() const;
     Q_INVOKABLE void setCurrentFile(const QString &filePath);
     Q_INVOKABLE void setPreventSleep(bool prevent);
+    Q_INVOKABLE void copyFilePathToClipboard(const QString &filePath);
+    Q_INVOKABLE void openInExplorer(const QString &filePath);
 
     bool hasNext() const;
     bool hasPrevious() const;

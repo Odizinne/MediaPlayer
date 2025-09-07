@@ -507,6 +507,22 @@ ApplicationWindow {
             acceptedButtons: Qt.NoButton
             onPositionChanged: window.showControls()
             onEntered: window.showControls()
+            onWheel: function(wheel) {
+                var delta = wheel.angleDelta.y / 120 // Standard wheel step is 120 units
+                var volumeStep = 0.05 // 5% per step
+                var newVolume = volumeSlider.value + (delta * volumeStep)
+
+                // Clamp between 0 and 1
+                if (newVolume > 1.0) {
+                    newVolume = 1.0
+                } else if (newVolume < 0.0) {
+                    newVolume = 0.0
+                }
+
+                volumeSlider.value = newVolume
+                volumeIndicator.show()
+                window.showControls()
+            }
         }
 
         VideoOutput {

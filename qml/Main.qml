@@ -126,7 +126,11 @@ ApplicationWindow {
 
     function showControls() {
         controlsToolbar.opacity = 1.0
+        controlsToolbar.anchors.bottomMargin = 0  // Slide in from bottom
+
         fullscreenToolbar.opacity = 1.0
+        fullscreenToolbar.anchors.topMargin = 0   // Slide in from top
+
         MediaController.setCursorState(MediaController.Normal)
 
         if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
@@ -146,7 +150,11 @@ ApplicationWindow {
             }
 
             controlsToolbar.opacity = 0.0
+            controlsToolbar.anchors.bottomMargin = -controlsToolbar.height  // Slide out to bottom
+
             fullscreenToolbar.opacity = 0.0
+            fullscreenToolbar.anchors.topMargin = -fullscreenToolbar.height  // Slide out to top
+
             MediaController.setCursorState(MediaController.Hidden)
         }
     }
@@ -715,6 +723,7 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
+        anchors.topMargin: -height
         z: 1000
 
         MouseArea {
@@ -728,7 +737,14 @@ ApplicationWindow {
 
         Behavior on opacity {
             NumberAnimation {
-                duration: 500
+                duration: 300
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        Behavior on anchors.topMargin {
+            NumberAnimation {
+                duration: 300
                 easing.type: Easing.InOutQuad
             }
         }
@@ -1479,6 +1495,7 @@ ApplicationWindow {
         visible: Common.currentMediaPath !== ""
         opacity: 1.0
         height: 120
+        anchors.bottomMargin: -height
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
@@ -1492,9 +1509,16 @@ ApplicationWindow {
             propagateComposedEvents: true
         }
 
+        Behavior on anchors.bottomMargin {
+            NumberAnimation {
+                duration: 300
+                easing.type: Easing.InOutQuad
+            }
+        }
+
         Behavior on opacity {
             NumberAnimation {
-                duration: 500
+                duration: 300
                 easing.type: Easing.InOutQuad
             }
         }

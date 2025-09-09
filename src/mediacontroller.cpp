@@ -48,7 +48,8 @@ void CoverArtImageProvider::clearCoverArt(const QString &filePath)
 }
 
 MediaController::MediaController(QObject *parent)
-    : QObject(parent), m_currentIndex(-1), m_metadataPlayer(nullptr), m_metadataAudioOutput(nullptr)
+    : QObject(parent), m_currentIndex(-1), m_metadataPlayer(nullptr),
+    m_metadataAudioOutput(nullptr), m_activeAudioTrack(-1), m_activeSubtitleTrack(-1)
 {
     if (!s_coverArtProvider) {
         s_coverArtProvider = new CoverArtImageProvider();
@@ -111,6 +112,16 @@ void MediaController::loadMediaMetadata(const QString &filePath)
     m_currentCoverArtUrl.clear();
 
     m_metadataPlayer->setSource(QUrl(filePath));
+
+    QSettings settings("Odizinne", "MediaPlayer");
+    QString audioLanguage = settings.value("preferredAudioLanguage", "en").toString();
+    QString subtitleLanguage = settings.value("preferredSubtitleLanguage", "en").toString();
+    bool autoSelectSubtitles = settings.value("autoSelectSubtitles", true).toBool();
+
+    qDebug() << "MediaController: Read preferences - Audio:" << audioLanguage
+             << "Subtitle:" << subtitleLanguage << "Auto-select:" << autoSelectSubtitles;
+
+    emit trackSelectionRequested(audioLanguage, subtitleLanguage, autoSelectSubtitles);
 }
 
 void MediaController::onMediaStatusChanged(QMediaPlayer::MediaStatus status)
@@ -224,7 +235,6 @@ void MediaController::copyPathToClipboard(const QString &filePath)
     QClipboard *clipboard = QGuiApplication::clipboard();
     clipboard->setText(localPath);
 }
-
 
 void MediaController::buildPlaylistFromFile(const QString &filePath)
 {
@@ -402,4 +412,56 @@ void MediaController::openInExplorer(const QString &filePath)
     QStringList args;
     args << "/select," << QDir::toNativeSeparators(localPath);
     QProcess::startDetached("explorer", args);
+}
+
+void MediaController::setActiveAudioTrack(int track)
+{
+    if (m_activeAudioTrack != track) {
+        m_activeAudioTrack = track;
+        qDebug() << "MediaController: Audio track changed to" << track;
+        emit tracksChanged();
+    }
+}
+
+void MediaController::setActiveSubtitleTrack(int track)
+{
+    if (m_activeSubtitleTrack != track) {
+        m_activeSubtitleTrack = track;
+        qDebug() << "MediaController: Subtitle track changed to" << track;
+        emit tracksChanged();
+    }
+}
+
+void MediaController::updateTracks(const QVariantList &audioTracks, const QVariantList &subtitleTracks, int activeAudio, int activeSubtitle)
+{
+    bool changed = false;
+
+    if (m_audioTracks != audioTracks) {
+        m_audioTracks = audioTracks;
+        changed = true;
+    }
+
+    if (m_subtitleTracks != subtitleTracks) {
+        m_subtitleTracks = subtitleTracks;
+        changed = true;
+    }
+
+    if (m_activeAudioTrack != activeAudio) {
+        m_activeAudioTrack = activeAudio;
+        changed = true;
+    }
+
+    if (m_activeSubtitleTrack != activeSubtitle) {
+        m_activeSubtitleTrack = activeSubtitle;
+        changed = true;
+    }
+
+    if (changed) {
+        emit tracksChanged();
+    }
+}
+
+void MediaController::selectDefaultTracks()
+{
+    qDebug() << "Track selection is now handled in QML";
 }

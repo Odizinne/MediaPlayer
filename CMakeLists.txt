@@ -50,6 +50,7 @@ set(QML_FILES
 )
 
 set(QML_SINGLETONS
+    qml/Singletons/UserSettings.qml
     qml/Singletons/Common.qml
 )
 

@@ -14,6 +14,9 @@
         <file>forward.svg</file>
         <file>rewind.svg</file>
         <file>sleep.svg</file>
+        <file>cog.svg</file>
+        <file>track.svg</file>
+        <file>subtitle.svg</file>
         <file>icon.png</file>
     </qresource>
 </RCC>

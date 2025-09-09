@@ -19,6 +19,8 @@
 #include <QMediaMetaData>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include <QTimer>
+#include <QSettings>
 #include <Windows.h>
 #include "windowspowereventfilter.h"
 
@@ -48,6 +50,10 @@ class MediaController : public QObject
     Q_PROPERTY(QString currentArtist READ getCurrentArtist NOTIFY metadataChanged)
     Q_PROPERTY(QString currentAlbum READ getCurrentAlbum NOTIFY metadataChanged)
     Q_PROPERTY(QString currentCoverArtUrl READ getCurrentCoverArtUrl NOTIFY metadataChanged)
+    Q_PROPERTY(QVariantList audioTracks READ getAudioTracks NOTIFY tracksChanged)
+    Q_PROPERTY(QVariantList subtitleTracks READ getSubtitleTracks NOTIFY tracksChanged)
+    Q_PROPERTY(int activeAudioTrack READ getActiveAudioTrack WRITE setActiveAudioTrack NOTIFY tracksChanged)
+    Q_PROPERTY(int activeSubtitleTrack READ getActiveSubtitleTrack WRITE setActiveSubtitleTrack NOTIFY tracksChanged)
 
 public:
     static MediaController* create(QQmlEngine *qmlEngine, QJSEngine *jsEngine);
@@ -74,6 +80,8 @@ public:
     Q_INVOKABLE void setPreventSleep(bool prevent);
     Q_INVOKABLE void copyFilePathToClipboard(const QString &filePath);
     Q_INVOKABLE void openInExplorer(const QString &filePath);
+    Q_INVOKABLE void updateTracks(const QVariantList &audioTracks, const QVariantList &subtitleTracks, int activeAudio, int activeSubtitle);
+    Q_INVOKABLE void selectDefaultTracks();
 
     bool hasNext() const;
     bool hasPrevious() const;
@@ -85,10 +93,19 @@ public:
     QString getCurrentAlbum() const { return m_currentAlbum; }
     QString getCurrentCoverArtUrl() const { return m_currentCoverArtUrl; }
 
+    QVariantList getAudioTracks() const { return m_audioTracks; }
+    QVariantList getSubtitleTracks() const { return m_subtitleTracks; }
+    int getActiveAudioTrack() const { return m_activeAudioTrack; }
+    int getActiveSubtitleTrack() const { return m_activeSubtitleTrack; }
+    void setActiveAudioTrack(int track);
+    void setActiveSubtitleTrack(int track);
+
 signals:
     void playlistChanged();
     void metadataChanged();
     void systemResumed();
+    void tracksChanged();
+    void trackSelectionRequested(const QString &audioLanguage, const QString &subtitleLanguage, bool autoSelectSubtitles);
 
 private slots:
     void onMetadataChanged();
@@ -108,6 +125,11 @@ private:
     QString m_currentArtist;
     QString m_currentAlbum;
     QString m_currentCoverArtUrl;
+
+    QVariantList m_audioTracks;
+    QVariantList m_subtitleTracks;
+    int m_activeAudioTrack;
+    int m_activeSubtitleTrack;
 
     static CoverArtImageProvider* s_coverArtProvider;
 

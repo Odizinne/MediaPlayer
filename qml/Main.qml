@@ -19,6 +19,8 @@ ApplicationWindow {
     Universal.theme: Universal.System
     Universal.accent: palette.highlight
 
+    property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsMenu.opened || contextMenu.opened
+
     property var currentAudioOutput: null
 
     Component.onDestruction: {
@@ -138,6 +140,11 @@ ApplicationWindow {
         id: hideTimer
         interval: 3000
         onTriggered: {
+            if (window.anyMenuOpen) {
+                hideTimer.restart()
+                return
+            }
+
             controlsToolbar.opacity = 0.0
             fullscreenToolbar.opacity = 0.0
             MediaController.setCursorState(MediaController.Hidden)
@@ -1122,6 +1129,7 @@ ApplicationWindow {
 
         VideoOutput {
             ContextMenu.menu: Menu {
+                id: contextMenu
                 enter: Transition {
                     NumberAnimation {
                         property: "opacity"

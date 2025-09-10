@@ -103,8 +103,15 @@ ApplicationWindow {
     function playNext() {
         var nextFile = MediaController.getNextFile()
         if (nextFile !== "") {
-            Common.loadMedia(nextFile)
-            mediaPlayer.source = nextFile
+            // Properly stop current video and clear video output
+            mediaPlayer.stop()
+            mediaPlayer.source = ""
+
+            // Wait a moment for cleanup, then load new video
+            Qt.callLater(() => {
+                Common.loadMedia(nextFile)
+                mediaPlayer.source = nextFile
+            })
         }
     }
 
@@ -114,8 +121,15 @@ ApplicationWindow {
         } else {
             var previousFile = MediaController.getPreviousFile()
             if (previousFile !== "") {
-                Common.loadMedia(previousFile)
-                mediaPlayer.source = previousFile
+                // Properly stop current video and clear video output
+                mediaPlayer.stop()
+                mediaPlayer.source = ""
+
+                // Wait a moment for cleanup, then load new video
+                Qt.callLater(() => {
+                    Common.loadMedia(previousFile)
+                    mediaPlayer.source = previousFile
+                })
             } else {
                 mediaPlayer.setPosition(0)
             }
@@ -386,17 +400,24 @@ ApplicationWindow {
 
         onMediaStatusChanged: {
             if (mediaStatus === MediaPlayer.LoadedMedia) {
-                if (Common.isVideo && videoOutput.sourceRect.width > 0) {
-                    Common.mediaWidth = videoOutput.sourceRect.width
-                    Common.mediaHeight = videoOutput.sourceRect.height
+                // Don't play immediately - wait for video to be ready
+                if (Common.isVideo) {
+                    // Wait for hasVideo to be true
+                    if (mediaPlayer.hasVideo && videoOutput.sourceRect.width > 0) {
+                        Common.mediaWidth = videoOutput.sourceRect.width
+                        Common.mediaHeight = videoOutput.sourceRect.height
+                        Qt.callLater(() => mediaPlayer.play())
+                    } else {
+                        // Retry in a moment
+                        Qt.callLater(() => {
+                            if (mediaPlayer.hasVideo) {
+                                mediaPlayer.play()
+                            }
+                        })
+                    }
+                } else {
+                    mediaPlayer.play()
                 }
-                var fileName = Common.getFileName(Common.currentMediaPath)
-                var playlistInfo = ""
-                if (MediaController.playlistSize > 1) {
-                    playlistInfo = " (" + (MediaController.currentIndex + 1) + "/" + MediaController.playlistSize + ")"
-                }
-                window.title = fileName + playlistInfo + " - MediaPlayer"
-                mediaPlayer.play()
             } else if (mediaStatus === MediaPlayer.InvalidMedia) {
                 console.log("Error loading media:", Common.currentMediaPath)
                 window.title = "MediaPlayer - Error loading media"

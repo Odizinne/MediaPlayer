@@ -3,6 +3,7 @@
 
 int main(int argc, char *argv[])
 {
+    qputenv("QT_MULTIMEDIA_PREFERRED_PLUGINS", "directshow");
     QGuiApplication app(argc, argv);
 
     app.setOrganizationName("Odizinne");

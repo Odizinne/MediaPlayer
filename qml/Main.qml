@@ -19,7 +19,7 @@ ApplicationWindow {
     Universal.theme: Universal.System
     Universal.accent: palette.highlight
 
-    property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsMenu.opened || contextMenu.opened
+    property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsDialog.visible || contextMenu.opened
 
     property var currentAudioOutput: null
 
@@ -575,97 +575,7 @@ ApplicationWindow {
                 icon.source: "qrc:/icons/cog.svg"
                 text: "Settings"
 
-                onClicked: settingsMenu.popup()
-
-                Menu {
-                    id: settingsMenu
-
-                    Menu {
-                        title: "Default Audio Language"
-
-                        MenuItem {
-                            text: "English"
-                            checkable: true
-                            checked: UserSettings.preferredAudioLanguage === "en"
-                            onTriggered: UserSettings.preferredAudioLanguage = "en"
-                        }
-                        MenuItem {
-                            text: "French"
-                            checkable: true
-                            checked: UserSettings.preferredAudioLanguage === "fr"
-                            onTriggered: UserSettings.preferredAudioLanguage = "fr"
-                        }
-                        MenuItem {
-                            text: "German"
-                            checkable: true
-                            checked: UserSettings.preferredAudioLanguage === "de"
-                            onTriggered: UserSettings.preferredAudioLanguage = "de"
-                        }
-                        MenuItem {
-                            text: "Spanish"
-                            checkable: true
-                            checked: UserSettings.preferredAudioLanguage === "es"
-                            onTriggered: UserSettings.preferredAudioLanguage = "es"
-                        }
-                        MenuItem {
-                            text: "Japanese"
-                            checkable: true
-                            checked: UserSettings.preferredAudioLanguage === "ja"
-                            onTriggered: UserSettings.preferredAudioLanguage = "ja"
-                        }
-                    }
-
-                    Menu {
-                        title: "Default Subtitle Language"
-
-                        MenuItem {
-                            text: "English"
-                            checkable: true
-                            checked: UserSettings.preferredSubtitleLanguage === "en"
-                            onTriggered: UserSettings.preferredSubtitleLanguage = "en"
-                        }
-                        MenuItem {
-                            text: "French"
-                            checkable: true
-                            checked: UserSettings.preferredSubtitleLanguage === "fr"
-                            onTriggered: UserSettings.preferredSubtitleLanguage = "fr"
-                        }
-                        MenuItem {
-                            text: "German"
-                            checkable: true
-                            checked: UserSettings.preferredSubtitleLanguage === "de"
-                            onTriggered: UserSettings.preferredSubtitleLanguage = "de"
-                        }
-                        MenuItem {
-                            text: "Spanish"
-                            checkable: true
-                            checked: UserSettings.preferredSubtitleLanguage === "es"
-                            onTriggered: UserSettings.preferredSubtitleLanguage = "es"
-                        }
-                        MenuItem {
-                            text: "Japanese"
-                            checkable: true
-                            checked: UserSettings.preferredSubtitleLanguage === "ja"
-                            onTriggered: UserSettings.preferredSubtitleLanguage = "ja"
-                        }
-                    }
-
-                    MenuSeparator {}
-
-                    MenuItem {
-                        text: "Auto-select Subtitles"
-                        checkable: true
-                        checked: UserSettings.autoSelectSubtitles
-                        onTriggered: UserSettings.autoSelectSubtitles = !UserSettings.autoSelectSubtitles
-                    }
-
-                    MenuSeparator {}
-
-                    MenuItem {
-                        text: "Reset Preferences"
-                        onTriggered: UserSettings.resetPreferences()
-                    }
-                }
+                onClicked: settingsDialog.open()
             }
         }
 
@@ -685,6 +595,11 @@ ApplicationWindow {
             elide: Text.ElideMiddle
             opacity: 0.5
         }
+    }
+
+    SettingsDialog {
+        id: settingsDialog
+        anchors.centerIn: parent
     }
 
     VolumeIndicator {
@@ -828,7 +743,7 @@ ApplicationWindow {
             icon.source: "qrc:/icons/cog.svg"
             height: 45
             width: 45
-            onClicked: settingsMenu.popup()
+            onClicked: settingsDialog.open()
             onHoveredChanged: if (hovered) window.showControls()
         }
     }

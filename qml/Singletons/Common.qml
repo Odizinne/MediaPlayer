@@ -10,6 +10,17 @@ Item {
     property int mediaFileSize: 0
     property bool enableScaleAnimation: false
     property bool isVideo: false
+    property bool isDarkMode: calculateLuminance(palette.window) < 0.5
+
+    function calculateLuminance(color) {
+        // Convert color to RGB values (0-1 range)
+        var r = color.r
+        var g = color.g
+        var b = color.b
+
+        // Calculate relative luminance using standard formula
+        return 0.299 * r + 0.587 * g + 0.114 * b
+    }
 
     function loadMedia(mediaPath) {
         currentMediaPath = mediaPath
@@ -27,9 +38,9 @@ Item {
         // Determine if it's a video file
         var path = mediaPath.toString().toLowerCase()
         isVideo = path.includes('.mp4') || path.includes('.avi') ||
-                  path.includes('.mov') || path.includes('.mkv') ||
-                  path.includes('.webm') || path.includes('.wmv') ||
-                  path.includes('.m4v') || path.includes('.flv')
+                path.includes('.mov') || path.includes('.mkv') ||
+                path.includes('.webm') || path.includes('.wmv') ||
+                path.includes('.m4v') || path.includes('.flv')
     }
 
     function getFileName(filePath) {

@@ -67,7 +67,7 @@ public:
 
     Q_INVOKABLE void setCursorState(CursorState state);
     Q_INVOKABLE QString getInitialMediaPath() const;
-    Q_INVOKABLE QString formatDuration(qint64 milliseconds);
+    Q_INVOKABLE QString formatDuration(qint64 duration);
     Q_INVOKABLE QString getFileName(const QString &filePath);
     Q_INVOKABLE qint64 getFileSize(const QString &filePath);
     Q_INVOKABLE QString formatFileSize(qint64 bytes);

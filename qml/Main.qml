@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls.Universal
+import QtQuick.Controls.FluentWinUI3
 import QtQuick.Controls.impl
 import QtQuick.Dialogs
 import QtQuick.Layouts
@@ -11,13 +11,11 @@ import Odizinne.MediaPlayer
 ApplicationWindow {
     id: window
     visible: true
-    width: 1000
-    height: 700
-    minimumWidth: 1000
-    minimumHeight: 700
+    width: 1280
+    height: 720 + 40
+    minimumWidth: 1280
+    minimumHeight: 720 + 40
     title: "MediaPlayer"
-    Universal.theme: Universal.System
-    Universal.accent: palette.highlight
 
     property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsDialog.visible || contextMenu.opened
 
@@ -126,10 +124,10 @@ ApplicationWindow {
 
     function showControls() {
         controlsToolbar.opacity = 1.0
-        controlsToolbar.anchors.bottomMargin = 0  // Slide in from bottom
+        controlsToolbar.anchors.bottomMargin = 20  // Slide in from bottom
 
         fullscreenToolbar.opacity = 1.0
-        fullscreenToolbar.anchors.topMargin = 0   // Slide in from top
+        fullscreenToolbar.anchors.topMargin = 20   // Slide in from top
 
         MediaController.setCursorState(MediaController.Normal)
 
@@ -144,6 +142,10 @@ ApplicationWindow {
         id: hideTimer
         interval: 3000
         onTriggered: {
+            if (!Common.isVideo) {
+                return
+            }
+
             if (window.anyMenuOpen) {
                 hideTimer.restart()
                 return
@@ -199,7 +201,7 @@ ApplicationWindow {
 
     Shortcut {
         sequence: "F11"
-        enabled: Common.currentMediaPath !== ""
+        enabled: Common.currentMediaPath !== "" && Common.isVideo
         onActivated: window.toggleFullscreen()
     }
 
@@ -257,32 +259,6 @@ ApplicationWindow {
         sequence: "Ctrl+Left"
         onActivated: window.playPrevious()
     }
-
-//    Shortcut {
-//        sequence: "A"
-//        onActivated: {
-//            var tracks = mediaPlayer.audioTracks
-//            if (tracks.length > 1) {
-//                var current = mediaPlayer.activeAudioTrack
-//                var next = (current + 1) % tracks.length
-//                mediaPlayer.activeAudioTrack = next
-//                audioTrackOverlay.show()
-//            }
-//        }
-//    }
-//
-//    Shortcut {
-//        sequence: "S"
-//        onActivated: {
-//            var tracks = mediaPlayer.subtitleTracks
-//            if (tracks.length > 0) {
-//                var current = mediaPlayer.activeSubtitleTrack
-//                var next = current >= tracks.length - 1 ? -1 : current + 1
-//                mediaPlayer.activeSubtitleTrack = next
-//                subtitleOverlay.show()
-//            }
-//        }
-//    }
 
     Component.onCompleted: {
         updateAudioDevice()
@@ -444,11 +420,14 @@ ApplicationWindow {
     header: ToolBar {
         height: 40
         visible: window.visibility !== Window.FullScreen
-
-        background: Rectangle {
-            implicitHeight: 48
-            color: Universal.background
-        }
+        leftPadding: 0
+        rightPadding: 0
+        topPadding: 0
+        bottomPadding: 0
+        topInset: 0
+        leftInset: 0
+        rightInset: 0
+        bottomInset: 0
 
         MouseArea {
             anchors.fill: parent
@@ -465,15 +444,15 @@ ApplicationWindow {
             anchors.verticalCenter: parent.verticalCenter
             height: 40
             icon.source: "qrc:/icons/file.svg"
-            Universal.foreground: Universal.accent
+            icon.color: palette.accent
             text: "Open media"
             onClicked: fileDialog.open()
         }
 
         RowLayout {
             anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
+            anchors.verticalCenter: parent.verticalCenter
+            height: 40
 
             ToolButton {
                 id: audioTracksButton
@@ -604,11 +583,15 @@ ApplicationWindow {
 
     VolumeIndicator {
         z: 1001
+        //parent: window.contentItem
+        visible: Common.currentMediaPath !== ""
         opacity: 0.0
         id: volumeIndicator
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.margins: 20
+        //anchors.top: parent.top
+        //anchors.left: parent.left
+        y: controlsToolbar.y - height - 20
+        x: (parent.width - width) / 2
+        //anchors.margins: 20
         value: volumeSlider.value
 
         Behavior on opacity {
@@ -639,6 +622,18 @@ ApplicationWindow {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.topMargin: -height
+        anchors.rightMargin: 20
+        anchors.leftMargin: 20
+        anchors.bottomMargin: 20
+
+        leftPadding: 0
+        rightPadding: 0
+        topPadding: 0
+        bottomPadding: 0
+        topInset: 0
+        leftInset: 0
+        rightInset: 0
+        bottomInset: 0
         z: 1000
 
         MouseArea {
@@ -665,8 +660,9 @@ ApplicationWindow {
         }
 
         background: Rectangle {
-            color: Universal.background
-            opacity: 0.7
+            color: palette.window
+            radius: 8
+            opacity: 0.8
         }
 
         // Left side - Track buttons
@@ -679,7 +675,7 @@ ApplicationWindow {
                 height: 45
                 width: 45
                 icon.source: "qrc:/icons/file.svg"
-                Universal.foreground: Universal.accent
+                icon.color: palette.accent
                 onClicked: fileDialog.open()
             }
 
@@ -713,7 +709,7 @@ ApplicationWindow {
                     if (Common.currentMediaPath === "") return ""
                     return Common.getFileName(Common.currentMediaPath)
                 }
-                color: "white"
+                //color: "white"
                 font.pointSize: 11
                 font.bold: true
                 width: Math.min(400, implicitWidth)
@@ -729,7 +725,7 @@ ApplicationWindow {
                     }
                     return ""
                 }
-                color: "white"
+                //color: "white"
                 font.pointSize: 9
                 opacity: 0.8
                 visible: text !== ""
@@ -875,7 +871,7 @@ ApplicationWindow {
 
         Rectangle {
             anchors.fill: parent
-            color: Universal.background
+            color: palette.window
             opacity: 0.5
             radius: width
         }
@@ -889,13 +885,13 @@ ApplicationWindow {
                 source: "qrc:/icons/rewind.svg"
                 sourceSize.width: 60
                 sourceSize.height: 60
-                color: Universal.foreground
+                color: palette.windowText
             }
 
             Label {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "-10s"
-                color: Universal.foreground
+                color: palette.windowText
                 font.pointSize: 12
                 font.bold: true
             }
@@ -938,7 +934,7 @@ ApplicationWindow {
 
         Rectangle {
             anchors.fill: parent
-            color: Universal.background
+            color: palette.window
             opacity: 0.5
             radius: width
         }
@@ -952,13 +948,13 @@ ApplicationWindow {
                 source: "qrc:/icons/forward.svg"
                 sourceSize.width: 60
                 sourceSize.height: 60
-                color: Universal.foreground
+                color: palette.windowText
             }
 
             Label {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "+10s"
-                color: Universal.foreground
+                color: palette.windowText
                 font.pointSize: 12
                 font.bold: true
             }
@@ -999,7 +995,7 @@ ApplicationWindow {
 
         Rectangle {
             anchors.fill: parent
-            color: Universal.background
+            color: palette.window
             opacity: 0.5
             radius: width
         }
@@ -1011,7 +1007,7 @@ ApplicationWindow {
                     : "qrc:/icons/play.svg"
             sourceSize.width: 80
             sourceSize.height: 80
-            color: Universal.foreground
+            color: palette.windowText
         }
 
         ParallelAnimation {
@@ -1035,9 +1031,16 @@ ApplicationWindow {
     Item {
         anchors.fill: parent
 
+        Rectangle {
+            anchors.fill: parent
+            color: "black"
+            visible: Common.isVideo && Common.currentMediaPath !== ""
+        }
+
         MouseArea {
             anchors.fill: parent
             hoverEnabled: true
+            enabled: Common.currentMediaPath !== ""
             acceptedButtons: Qt.NoButton
             onPositionChanged: window.showControls()
             onEntered: window.showControls()
@@ -1061,39 +1064,7 @@ ApplicationWindow {
         VideoOutput {
             ContextMenu.menu: Menu {
                 id: contextMenu
-                enter: Transition {
-                    NumberAnimation {
-                        property: "opacity"
-                        from: 0
-                        to: 1
-                        duration: 150
-                        easing.type: Easing.OutQuad
-                    }
-                    NumberAnimation {
-                        property: "scale"
-                        from: 0.95
-                        to: 1.0
-                        duration: 150
-                        easing.type: Easing.OutQuad
-                    }
-                }
 
-                exit: Transition {
-                    NumberAnimation {
-                        property: "opacity"
-                        from: 1
-                        to: 0
-                        duration: 100
-                        easing.type: Easing.InQuad
-                    }
-                    NumberAnimation {
-                        property: "scale"
-                        from: 1.0
-                        to: 0.95
-                        duration: 100
-                        easing.type: Easing.InQuad
-                    }
-                }
                 MenuItem {
                     text: qsTr("Copy File Path")
                     enabled: Common.currentMediaPath !== ""
@@ -1168,6 +1139,7 @@ ApplicationWindow {
                 MenuSeparator {}
                 MenuItem {
                     text: window.visibility === Window.FullScreen ? qsTr("Exit Fullscreen") : qsTr("Enter Fullscreen")
+                    enabled: Common.currentMediaPath !== "" && Common.isVideo
                     onTriggered: window.toggleFullscreen()
                 }
             }
@@ -1208,7 +1180,7 @@ ApplicationWindow {
 
         Rectangle {
             anchors.fill: parent
-            color: Universal.background
+            color: window.color
             visible: !Common.isVideo && Common.currentMediaPath !== ""
 
             Column {
@@ -1220,7 +1192,8 @@ ApplicationWindow {
                 Rectangle {
                     width: 200
                     height: 200
-                    color: Universal.baseLowColor
+                    color: palette.base
+                    radius: 8
 
                     Image {
                         id: albumArtImage
@@ -1232,7 +1205,7 @@ ApplicationWindow {
                         Rectangle {
                             anchors.fill: parent
                             color: "transparent"
-                            border.color: Universal.baseLowColor
+                            border.color: palette.base
                             border.width: 2
                             visible: parent.visible
                         }
@@ -1243,7 +1216,7 @@ ApplicationWindow {
                         source: "qrc:/icons/music.svg"
                         sourceSize.width: 64
                         sourceSize.height: 64
-                        color: Universal.foreground
+                        color: palette.windowText
                         visible: MediaController.currentCoverArtUrl === "" || albumArtImage.status === Image.Error || albumArtImage.status === Image.Null
                     }
                 }
@@ -1405,6 +1378,12 @@ ApplicationWindow {
         }
     }
 
+    TextMetrics {
+        id: timelineFontMetrics
+        font.pointSize: 11
+        text: "88:88:88"
+    }
+
     ToolBar {
         id: controlsToolbar
         visible: Common.currentMediaPath !== ""
@@ -1414,6 +1393,8 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+        anchors.leftMargin: 20
+        anchors.rightMargin: 20
 
         MouseArea {
             anchors.fill: parent
@@ -1439,106 +1420,100 @@ ApplicationWindow {
         }
 
         background: Rectangle {
-            color: Universal.background
-            opacity: 0.7
+            color: Common.isVideo ? palette.window : palette.base
+            radius: 8
+            opacity: Common.isVideo ? 0.8 : 1.0
         }
 
-        Slider {
-            id: progressSlider
+        RowLayout {
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.margins: 10
-            from: 0
-            to: Math.max(mediaPlayer.duration, 1)
-            value: mediaPlayer.position
-            enabled: mediaPlayer.seekable && mediaPlayer.duration > 0
-            property bool wasPlaying: false
+            Label {
+                id: currentTimeLabel
+                text: MediaController.formatDuration(mediaPlayer.position)
+                opacity: 0.7
+                font.pointSize: 11
+                verticalAlignment: Text.AlignVCenter
+                Layout.alignment: Qt.AlignCenter
+                Layout.preferredWidth: timelineFontMetrics.width
+                horizontalAlignment: Text.AlignRight
+            }
 
-            onPressedChanged: {
-                window.showControls()
+            Slider {
+                id: progressSlider
 
-                if (pressed) {
-                    hideTimer.stop()
+                from: 0
+                to: Math.max(mediaPlayer.duration, 1)
+                value: mediaPlayer.position
+                enabled: mediaPlayer.seekable && mediaPlayer.duration > 0
+                property bool wasPlaying: false
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignCenter
 
-                    if (mediaPlayer.playing) {
-                        mediaPlayer.pause()
-                        wasPlaying = true
-                    } else {
-                        wasPlaying = false
-                    }
-                } else {
-                    hideTimer.restart()
+                onPressedChanged: {
+                    window.showControls()
 
-                    if (mediaPlayer.duration > 0) {
-                        mediaPlayer.setPosition(value)
-                        if (wasPlaying) {
-                            mediaPlayer.play()
-                        } else {
+                    if (pressed) {
+                        hideTimer.stop()
+
+                        if (mediaPlayer.playing) {
                             mediaPlayer.pause()
+                            wasPlaying = true
+                        } else {
+                            wasPlaying = false
+                        }
+                    } else {
+                        hideTimer.restart()
+
+                        if (mediaPlayer.duration > 0) {
+                            mediaPlayer.setPosition(value)
+                            if (wasPlaying) {
+                                mediaPlayer.play()
+                            } else {
+                                mediaPlayer.pause()
+                            }
                         }
                     }
                 }
-            }
 
-            ToolTip {
-                visible: progressSlider.pressed
-                text: MediaController.formatDuration(progressSlider.value) + " / " + MediaController.formatDuration(mediaPlayer.duration)
-                x: progressSlider.handle.x + progressSlider.handle.width / 2 - width / 2
-                y: progressSlider.handle.y - height - 10
-
-                enter: Transition {
-                    NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 100; easing.type: Easing.InQuad }
+                ToolTip {
+                    visible: progressSlider.pressed
+                    text: MediaController.formatDuration(progressSlider.value) + " / " + MediaController.formatDuration(mediaPlayer.duration)
+                    x: progressSlider.handle.x + progressSlider.handle.width / 2 - width / 2
+                    y: progressSlider.handle.y - height - 10
                 }
 
-                exit: Transition {
-                    NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 100; easing.type: Easing.OutQuad }
+                Binding {
+                    target: progressSlider
+                    property: "value"
+                    value: mediaPlayer.position
+                    when: !progressSlider.pressed && mediaPlayer.duration > 0
                 }
             }
 
-            Binding {
-                target: progressSlider
-                property: "value"
-                value: mediaPlayer.position
-                when: !progressSlider.pressed && mediaPlayer.duration > 0
-            }
-        }
-
-        Row {
-            id: timeRow
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.leftMargin: 15
-            anchors.verticalCenterOffset: 20
-            spacing: 8
-
             Label {
-                text: MediaController.formatDuration(mediaPlayer.position)
-                opacity: 0.7
-                font.pointSize: 10
-            }
-
-            Label {
-                text: "/"
-                opacity: 0.5
-                font.pointSize: 10
-            }
-
-            Label {
+                id: totalTimeLabel
                 text: MediaController.formatDuration(mediaPlayer.duration)
                 opacity: 0.7
-                font.pointSize: 10
+                font.pointSize: 11
+                verticalAlignment: Text.AlignVCenter
+                Layout.alignment: Qt.AlignCenter
+                Layout.preferredWidth: timelineFontMetrics.width
+                horizontalAlignment: Text.AlignLeft
             }
         }
 
         ToolButton {
             id: sleepButton
-            anchors.left: timeRow.right
+            anchors.left: parent.left
             anchors.leftMargin: 10
-            anchors.verticalCenter: timeRow.verticalCenter
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.verticalCenterOffset: 20
             icon.source: "qrc:/icons/sleep.svg"
-            width: 32
-            height: 32
+            width: 48
+            height: 48
             checkable: true
             onClicked: window.showControls()
             onHoveredChanged: if (hovered) window.showControls()
@@ -1585,6 +1560,7 @@ ApplicationWindow {
                         newPosition = 0
                     }
                     mediaPlayer.setPosition(newPosition)
+                    rewindOverlay.trigger()
                 }
                 onHoveredChanged: if (hovered) window.showControls()
                 ToolTip.visible: hovered
@@ -1621,6 +1597,7 @@ ApplicationWindow {
                         newPosition = mediaPlayer.duration
                     }
                     mediaPlayer.setPosition(newPosition)
+                    forwardOverlay.trigger()
                 }
                 onHoveredChanged: if (hovered) window.showControls()
                 ToolTip.visible: hovered
@@ -1693,7 +1670,7 @@ ApplicationWindow {
                     window.toggleFullscreen()
                 }
                 onHoveredChanged: if (hovered) window.showControls()
-                enabled: Common.currentMediaPath !== ""
+                enabled: Common.currentMediaPath !== "" && Common.isVideo
                 ToolTip.visible: hovered
                 ToolTip.text: window.visibility === Window.FullScreen ? "Exit fullscreen" : "Enter fullscreen"
             }

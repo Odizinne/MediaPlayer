@@ -1,4 +1,4 @@
-import QtQuick.Controls.Universal
+import QtQuick.Controls.FluentWinUI3
 import QtQuick.Layouts
 import QtQuick
 import Odizinne.MediaPlayer
@@ -11,6 +11,7 @@ Dialog {
 
     ColumnLayout {
         anchors.fill: parent
+        spacing: 15
 
         RowLayout {
             Label {
@@ -84,7 +85,7 @@ Dialog {
                 Layout.fillWidth: true
             }
 
-            CheckBox {
+            Switch {
                 checked: UserSettings.autoSelectSubtitles
                 onClicked: UserSettings.autoSelectSubtitles = !UserSettings.autoSelectSubtitles
             }

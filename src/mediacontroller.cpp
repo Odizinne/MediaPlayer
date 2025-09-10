@@ -170,24 +170,18 @@ QString MediaController::getInitialMediaPath() const
     return m_initialMediaPath;
 }
 
-QString MediaController::formatDuration(qint64 milliseconds)
+QString MediaController::formatDuration(qint64 duration)
 {
-    if (milliseconds <= 0) return "0:00";
+    if (duration <= 0) return "00:00:00";
 
-    int seconds = (milliseconds / 1000) % 60;
-    int minutes = (milliseconds / (1000 * 60)) % 60;
-    int hours = (milliseconds / (1000 * 60 * 60)) % 24;
+    int hours = duration / 3600000;
+    int minutes = (duration % 3600000) / 60000;
+    int seconds = (duration % 60000) / 1000;
 
-    if (hours > 0) {
-        return QString("%1:%2:%3")
-        .arg(hours)
-            .arg(minutes, 2, 10, QChar('0'))
-            .arg(seconds, 2, 10, QChar('0'));
-    } else {
-        return QString("%1:%2")
-        .arg(minutes)
-            .arg(seconds, 2, 10, QChar('0'));
-    }
+    return QString("%1:%2:%3")
+        .arg(hours, 2, 10, QChar('0'))
+        .arg(minutes, 2, 10, QChar('0'))
+        .arg(seconds, 2, 10, QChar('0'));
 }
 
 QString MediaController::getFileName(const QString &filePath)

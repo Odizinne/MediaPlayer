@@ -45,7 +45,6 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 set(QML_FILES
     qml/Main.qml
-    qml/VerticalProgressBar.qml
     qml/VolumeIndicator.qml
 )
 

@@ -662,7 +662,7 @@ ApplicationWindow {
         background: Rectangle {
             color: palette.window
             radius: 8
-            opacity: 0.9
+            opacity: 1
         }
 
         // Left side - Track buttons
@@ -1422,7 +1422,7 @@ ApplicationWindow {
         background: Rectangle {
             color: Common.isVideo ? palette.window : palette.base
             radius: 8
-            opacity: Common.isVideo ? 0.9 : 1.0
+            opacity: 1.0
         }
 
         RowLayout {

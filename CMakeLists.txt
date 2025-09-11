@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.30)
 
 project(MediaPlayer VERSION 0.3.0 LANGUAGES CXX)
 

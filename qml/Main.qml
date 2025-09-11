@@ -19,7 +19,7 @@ ApplicationWindow {
 
     property bool toolbarsAnimating: false
     property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsDialog.visible || contextMenu.opened
-    property bool mouseOverControls: false  // Add hover tracking
+    property bool mouseOverControls: false
 
     property var currentAudioOutput: null
 
@@ -139,11 +139,12 @@ ApplicationWindow {
     }
 
     function showControls() {
+        if (window.toolbarsAnimating) return
         controlsToolbar.opacity = 1.0
-        controlsToolbar.anchors.bottomMargin = 20  // Slide in from bottom
+        controlsToolbar.anchors.bottomMargin = 20
 
         fullscreenToolbar.opacity = 1.0
-        fullscreenToolbar.anchors.topMargin = 20   // Slide in from top
+        fullscreenToolbar.anchors.topMargin = 20
 
         MediaController.setCursorState(MediaController.Normal)
 
@@ -162,16 +163,15 @@ ApplicationWindow {
                 return
             }
 
-            if (window.anyMenuOpen || window.mouseOverControls) {  // Check hover state
+            if (window.anyMenuOpen || window.mouseOverControls) {
                 hideTimer.restart()
                 return
             }
 
             controlsToolbar.opacity = 0.0
-            controlsToolbar.anchors.bottomMargin = -controlsToolbar.height  // Slide out to bottom
-
             fullscreenToolbar.opacity = 0.0
-            fullscreenToolbar.anchors.topMargin = -fullscreenToolbar.height  // Slide out to top
+            controlsToolbar.anchors.bottomMargin = -controlsToolbar.height
+            fullscreenToolbar.anchors.topMargin = -fullscreenToolbar.height
 
             MediaController.setCursorState(MediaController.Hidden)
         }
@@ -452,15 +452,6 @@ ApplicationWindow {
         rightInset: 0
         bottomInset: 0
 
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            acceptedButtons: Qt.NoButton
-            onPositionChanged: window.showControls()
-            onEntered: window.showControls()
-            propagateComposedEvents: true
-        }
-
         ToolButton {
             id: openButton
             anchors.left: parent.left
@@ -655,23 +646,25 @@ ApplicationWindow {
         bottomInset: 0
         z: 1000
 
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            acceptedButtons: Qt.NoButton
+        HoverHandler {
+            id: fullscreenToolbarHover
             enabled: !window.toolbarsAnimating
-            onPositionChanged: window.showControls()
-            onEntered: {
-                window.mouseOverControls = true
-                window.showControls()
-            }
-            onExited: {
-                window.mouseOverControls = false
-                if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
-                    hideTimer.restart()
+            onHoveredChanged: {
+                if (hovered) {
+                    window.mouseOverControls = true
+                } else {
+                    window.mouseOverControls = false
+                    if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
+                        hideTimer.restart()
+                    }
                 }
             }
-            propagateComposedEvents: true
+
+            onPointChanged: {
+                if (hovered) {
+                    window.mouseOverControls = true
+                }
+            }
         }
 
         Behavior on opacity {
@@ -716,7 +709,6 @@ ApplicationWindow {
                 width: 45
                 height: 45
                 onClicked: audioTracksMenu.popup()
-                onHoveredChanged: if (hovered) window.showControls()
             }
 
             ToolButton {
@@ -725,7 +717,6 @@ ApplicationWindow {
                 width: 45
                 height: 45
                 onClicked: subtitleTracksMenu.popup()
-                onHoveredChanged: if (hovered) window.showControls()
             }
         }
 
@@ -778,7 +769,6 @@ ApplicationWindow {
             height: 45
             width: 45
             onClicked: settingsDialog.open()
-            onHoveredChanged: if (hovered) window.showControls()
         }
     }
 
@@ -1434,23 +1424,25 @@ ApplicationWindow {
         anchors.leftMargin: 20
         anchors.rightMargin: 20
 
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            acceptedButtons: Qt.NoButton
+        HoverHandler {
+            id: controlsToolbarHover
             enabled: !window.toolbarsAnimating
-            onPositionChanged: window.showControls()
-            onEntered: {
-                window.mouseOverControls = true
-                window.showControls()
-            }
-            onExited: {
-                window.mouseOverControls = false
-                if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
-                    hideTimer.restart()
+            onHoveredChanged: {
+                if (hovered) {
+                    window.mouseOverControls = true
+                } else {
+                    window.mouseOverControls = false
+                    if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
+                        hideTimer.restart()
+                    }
                 }
             }
-            propagateComposedEvents: true
+
+            onPointChanged: {
+                if (hovered) {
+                    window.mouseOverControls = true
+                }
+            }
         }
 
         Behavior on anchors.bottomMargin {
@@ -1501,13 +1493,8 @@ ApplicationWindow {
                 property bool wasPlaying: false
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignCenter
-
                 onPressedChanged: {
-                    window.showControls()
-
                     if (pressed) {
-                        hideTimer.stop()
-
                         if (mediaPlayer.playing) {
                             mediaPlayer.pause()
                             wasPlaying = true
@@ -1515,8 +1502,6 @@ ApplicationWindow {
                             wasPlaying = false
                         }
                     } else {
-                        hideTimer.restart()
-
                         if (mediaPlayer.duration > 0) {
                             mediaPlayer.setPosition(value)
                             if (wasPlaying) {
@@ -1565,8 +1550,6 @@ ApplicationWindow {
             width: 48
             height: 48
             checkable: true
-            onClicked: window.showControls()
-            onHoveredChanged: if (hovered) window.showControls()
             ToolTip.visible: hovered
             ToolTip.text: checked ? "Sleep mode: ON (will ask before playing next)" : "Sleep mode: OFF"
         }
@@ -1583,10 +1566,8 @@ ApplicationWindow {
                 height: 48
                 enabled: MediaController.hasPrevious || mediaPlayer.position > 5000
                 onClicked: {
-                    window.showControls()
                     window.playPrevious()
                 }
-                onHoveredChanged: if (hovered) window.showControls()
                 ToolTip.visible: hovered
                 ToolTip.text: {
                     if (mediaPlayer.position > 5000) {
@@ -1604,7 +1585,6 @@ ApplicationWindow {
                 width: 48
                 height: 48
                 onClicked: {
-                    window.showControls()
                     var newPosition = mediaPlayer.position - 10000
                     if (newPosition < 0) {
                         newPosition = 0
@@ -1612,7 +1592,6 @@ ApplicationWindow {
                     mediaPlayer.setPosition(newPosition)
                     rewindOverlay.trigger()
                 }
-                onHoveredChanged: if (hovered) window.showControls()
                 ToolTip.visible: hovered
                 ToolTip.text: "Rewind 10 seconds"
             }
@@ -1623,7 +1602,6 @@ ApplicationWindow {
                 width: 48
                 height: 48
                 onClicked: {
-                    window.showControls()
                     if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
                         mediaPlayer.pause()
                     } else {
@@ -1631,7 +1609,6 @@ ApplicationWindow {
                     }
                     overlay.trigger()
                 }
-                onHoveredChanged: if (hovered) window.showControls()
                 ToolTip.visible: hovered
                 ToolTip.text: mediaPlayer.playbackState === MediaPlayer.PlayingState ? "Pause" : "Play"
             }
@@ -1641,7 +1618,6 @@ ApplicationWindow {
                 width: 48
                 height: 48
                 onClicked: {
-                    window.showControls()
                     var newPosition = mediaPlayer.position + 10000
                     if (newPosition > mediaPlayer.duration) {
                         newPosition = mediaPlayer.duration
@@ -1649,7 +1625,6 @@ ApplicationWindow {
                     mediaPlayer.setPosition(newPosition)
                     forwardOverlay.trigger()
                 }
-                onHoveredChanged: if (hovered) window.showControls()
                 ToolTip.visible: hovered
                 ToolTip.text: "Forward 10 seconds"
             }
@@ -1660,10 +1635,8 @@ ApplicationWindow {
                 height: 48
                 enabled: MediaController.hasNext
                 onClicked: {
-                    window.showControls()
                     window.playNext()
                 }
-                onHoveredChanged: if (hovered) window.showControls()
                 ToolTip.visible: hovered
                 ToolTip.text: MediaController.hasNext ? "Next" : "Next (no more files)"
             }
@@ -1682,9 +1655,6 @@ ApplicationWindow {
                 checkable: true
                 width: 48
                 height: 48
-
-                onClicked: window.showControls()
-                onHoveredChanged: if (hovered) window.showControls()
                 ToolTip.visible: hovered
                 ToolTip.text: checked ? "Unmute" : "Mute"
             }
@@ -1696,17 +1666,6 @@ ApplicationWindow {
                 from: 0
                 to: 1
                 value: 1
-
-                onPressedChanged: {
-                    if (pressed) {
-                        window.showControls()
-                        hideTimer.stop()
-                    } else {
-                        hideTimer.restart()
-                    }
-                }
-
-                onHoveredChanged: if (hovered) window.showControls()
                 ToolTip.visible: hovered
                 ToolTip.text: "Volume: " + Math.round(value * 100) + "%"
             }
@@ -1716,10 +1675,8 @@ ApplicationWindow {
                 width: 48
                 height: 48
                 onClicked: {
-                    window.showControls()
                     window.toggleFullscreen()
                 }
-                onHoveredChanged: if (hovered) window.showControls()
                 enabled: Common.currentMediaPath !== "" && Common.isVideo
                 ToolTip.visible: hovered
                 ToolTip.text: window.visibility === Window.FullScreen ? "Exit fullscreen" : "Enter fullscreen"

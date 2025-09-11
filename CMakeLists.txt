@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(MediaPlayer VERSION 0.2.0 LANGUAGES CXX)
+project(MediaPlayer VERSION 0.3.0 LANGUAGES CXX)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Installation directory" FORCE)
 set(CMAKE_CXX_STANDARD 20)

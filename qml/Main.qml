@@ -17,6 +17,7 @@ ApplicationWindow {
     minimumHeight: 720 + 40
     title: "MediaPlayer"
 
+    property bool toolbarsAnimating: false
     property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsDialog.visible || contextMenu.opened
     property bool mouseOverControls: false  // Add hover tracking
 
@@ -658,6 +659,7 @@ ApplicationWindow {
             anchors.fill: parent
             hoverEnabled: true
             acceptedButtons: Qt.NoButton
+            enabled: !window.toolbarsAnimating
             onPositionChanged: window.showControls()
             onEntered: {
                 window.mouseOverControls = true
@@ -676,6 +678,7 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
+                onRunningChanged: window.toolbarsAnimating = running
             }
         }
 
@@ -683,6 +686,7 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
+                onRunningChanged: window.toolbarsAnimating = running
             }
         }
 
@@ -757,8 +761,17 @@ ApplicationWindow {
             }
         }
 
+        Label {
+            anchors.right: settingsToolButton.left
+            anchors.verticalCenter: parent.verticalCenter
+            text: Qt.formatTime(new Date(), "hh:mm")
+            font.pointSize: 11
+            opacity: 0.7
+        }
+
         // Right side - Settings
         ToolButton {
+            id: settingsToolButton
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
             icon.source: "qrc:/icons/cog.svg"
@@ -1425,6 +1438,7 @@ ApplicationWindow {
             anchors.fill: parent
             hoverEnabled: true
             acceptedButtons: Qt.NoButton
+            enabled: !window.toolbarsAnimating
             onPositionChanged: window.showControls()
             onEntered: {
                 window.mouseOverControls = true
@@ -1443,6 +1457,7 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
+                onRunningChanged: window.toolbarsAnimating = running
             }
         }
 
@@ -1450,6 +1465,7 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
+                onRunningChanged: window.toolbarsAnimating = running
             }
         }
 

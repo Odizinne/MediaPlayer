@@ -305,12 +305,12 @@ ApplicationWindow {
 
         onActiveAudioTrackChanged: {
             console.log("MediaPlayer active audio track changed to:", activeAudioTrack)
-            MediaController.setActiveAudioTrack(activeAudioTrack)
+            MediaController.activeAudioTrack(activeAudioTrack)
         }
 
         onActiveSubtitleTrackChanged: {
             console.log("MediaPlayer active subtitle track changed to:", activeSubtitleTrack)
-            MediaController.setActiveSubtitleTrack(activeSubtitleTrack)
+            MediaController.activeSubtitleTrack(activeSubtitleTrack)
         }
 
         function selectTracksWithPreferences(audioLanguage, subtitleLanguage, autoSelectSubtitles) {
@@ -752,15 +752,29 @@ ApplicationWindow {
             }
         }
 
-        Label {
+        Row {
             anchors.right: settingsToolButton.left
             anchors.verticalCenter: parent.verticalCenter
-            text: Qt.formatTime(new Date(), "hh:mm")
-            font.pointSize: 11
-            opacity: 0.7
+            anchors.rightMargin: 5
+            spacing: 5
+
+            IconImage {
+                anchors.verticalCenter: parent.verticalCenter
+                source: "qrc:/icons/clock.svg"
+                sourceSize.width: 14
+                sourceSize.height: 14
+                color: palette.windowText
+            }
+
+            Label {
+                anchors.verticalCenter: parent.verticalCenter
+                color: palette.windowText
+                text: Qt.formatTime(new Date(), "hh:mm")
+                font.pointSize: 11
+                opacity: 0.7
+            }
         }
 
-        // Right side - Settings
         ToolButton {
             id: settingsToolButton
             anchors.right: parent.right

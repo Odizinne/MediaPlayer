@@ -17,6 +17,7 @@
         <file>cog.svg</file>
         <file>track.svg</file>
         <file>subtitle.svg</file>
+        <file>clock.svg</file>
         <file>icon.png</file>
     </qresource>
 </RCC>

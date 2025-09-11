@@ -90,5 +90,19 @@ Dialog {
                 onClicked: UserSettings.autoSelectSubtitles = !UserSettings.autoSelectSubtitles
             }
         }
+
+        RowLayout {
+            Label {
+                text: "Fullscreen Ui opacity"
+                Layout.fillWidth: true
+            }
+
+            Slider {
+                from: 0.7
+                to: 1
+                value: UserSettings.uiOpacity
+                onValueChanged: UserSettings.uiOpacity = value
+            }
+        }
     }
 }

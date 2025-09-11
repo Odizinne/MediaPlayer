@@ -6,6 +6,7 @@ Settings {
     property string preferredAudioLanguage: "en"
     property string preferredSubtitleLanguage: "en"
     property bool autoSelectSubtitles: true
+    property real uiOpacity: 1
 
     function resetPreferences() {
         preferredAudioLanguage = "en"

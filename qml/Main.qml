@@ -295,22 +295,44 @@ ApplicationWindow {
         }
 
         onTracksChanged: {
-            console.log("MediaPlayer tracks changed - Audio:", audioTracks.length, "Subtitle:", subtitleTracks.length)
             MediaController.updateTracks(audioTracks, subtitleTracks, activeAudioTrack, activeSubtitleTrack)
 
-            Qt.callLater(() => {
-                             selectTracksWithPreferences(UserSettings.preferredAudioLanguage, UserSettings.preferredSubtitleLanguage, UserSettings.autoSelectSubtitles)
-                         })
+            if (audioTracks.length > 0 || subtitleTracks.length > 0) {
+                selectTracksWithPreferences(UserSettings.preferredAudioLanguage, UserSettings.preferredSubtitleLanguage, UserSettings.autoSelectSubtitles)
+            }
         }
 
-        onActiveAudioTrackChanged: {
-            console.log("MediaPlayer active audio track changed to:", activeAudioTrack)
-            MediaController.activeAudioTrack(activeAudioTrack)
-        }
+        onMediaStatusChanged: {
+            if (mediaStatus === MediaPlayer.LoadedMedia) {
+                // Handle video/audio playback
+                if (Common.isVideo) {
+                    if (mediaPlayer.hasVideo && videoOutput.sourceRect.width > 0) {
+                        Common.mediaWidth = videoOutput.sourceRect.width
+                        Common.mediaHeight = videoOutput.sourceRect.height
+                        Qt.callLater(() => mediaPlayer.play())
+                    } else {
+                        Qt.callLater(() => {
+                            if (mediaPlayer.hasVideo) {
+                                mediaPlayer.play()
+                            }
+                        })
+                    }
+                } else {
+                    mediaPlayer.play()
+                }
+            } else if (mediaStatus === MediaPlayer.InvalidMedia) {
+                console.log("Error loading media:", Common.currentMediaPath)
+                window.title = "MediaPlayer - Error loading media"
+                MediaController.setPreventSleep(false)
+            } else if (mediaStatus === MediaPlayer.EndOfMedia) {
+                MediaController.setPreventSleep(false)
 
-        onActiveSubtitleTrackChanged: {
-            console.log("MediaPlayer active subtitle track changed to:", activeSubtitleTrack)
-            MediaController.activeSubtitleTrack(activeSubtitleTrack)
+                if (sleepButton.checked && MediaController.hasNext) {
+                    continuePlayingDialog.open()
+                } else if (MediaController.hasNext) {
+                    window.playNext()
+                }
+            }
         }
 
         function selectTracksWithPreferences(audioLanguage, subtitleLanguage, autoSelectSubtitles) {
@@ -319,22 +341,35 @@ ApplicationWindow {
             console.log("Current audio track:", activeAudioTrack, "Current subtitle track:", activeSubtitleTrack)
             console.log("Preferences - Audio:", audioLanguage, "Subtitle:", subtitleLanguage, "Auto:", autoSelectSubtitles)
 
+            // Debug track information
+            for (var i = 0; i < audioTracks.length; i++) {
+                var track = audioTracks[i]
+                if (track && track.stringValue) {
+                    console.log("Audio track", i, "- Language:", track.stringValue(6), "Title:", track.stringValue(0))
+                }
+            }
+
             if (audioTracks.length > 1) {
                 var preferredAudioIndex = findTrackByLanguage(audioTracks, audioLanguage)
-                if (preferredAudioIndex >= 0 && preferredAudioIndex !== activeAudioTrack) {
-                    console.log("Selecting audio track", preferredAudioIndex, "for language", audioLanguage)
+                if (preferredAudioIndex >= 0) {
+                    console.log("Setting audio track to", preferredAudioIndex, "for language", audioLanguage)
                     activeAudioTrack = preferredAudioIndex
+                } else {
+                    console.log("No audio track found for language", audioLanguage, "keeping default")
                 }
             }
 
             if (autoSelectSubtitles && subtitleTracks.length > 0) {
                 var preferredSubtitleIndex = findTrackByLanguage(subtitleTracks, subtitleLanguage)
-                if (preferredSubtitleIndex >= 0 && preferredSubtitleIndex !== activeSubtitleTrack) {
-                    console.log("Selecting subtitle track", preferredSubtitleIndex, "for language", subtitleLanguage)
+                if (preferredSubtitleIndex >= 0) {
+                    console.log("Setting subtitle track to", preferredSubtitleIndex, "for language", subtitleLanguage)
                     activeSubtitleTrack = preferredSubtitleIndex
+                } else {
+                    console.log("No subtitle track found for language", subtitleLanguage, "keeping off")
                 }
             }
 
+            console.log("Final tracks - Audio:", activeAudioTrack, "Subtitle:", activeSubtitleTrack)
             console.log("=== END QML TRACK SELECTION ===")
         }
 
@@ -400,41 +435,6 @@ ApplicationWindow {
             return -1
         }
 
-        onMediaStatusChanged: {
-            if (mediaStatus === MediaPlayer.LoadedMedia) {
-                // Don't play immediately - wait for video to be ready
-                if (Common.isVideo) {
-                    // Wait for hasVideo to be true
-                    if (mediaPlayer.hasVideo && videoOutput.sourceRect.width > 0) {
-                        Common.mediaWidth = videoOutput.sourceRect.width
-                        Common.mediaHeight = videoOutput.sourceRect.height
-                        Qt.callLater(() => mediaPlayer.play())
-                    } else {
-                        // Retry in a moment
-                        Qt.callLater(() => {
-                            if (mediaPlayer.hasVideo) {
-                                mediaPlayer.play()
-                            }
-                        })
-                    }
-                } else {
-                    mediaPlayer.play()
-                }
-            } else if (mediaStatus === MediaPlayer.InvalidMedia) {
-                console.log("Error loading media:", Common.currentMediaPath)
-                window.title = "MediaPlayer - Error loading media"
-                MediaController.setPreventSleep(false)
-            } else if (mediaStatus === MediaPlayer.EndOfMedia) {
-                MediaController.setPreventSleep(false)
-
-                if (sleepButton.checked && MediaController.hasNext) {
-                    continuePlayingDialog.open()
-                } else if (MediaController.hasNext) {
-                    window.playNext()
-                }
-            }
-        }
-
         onErrorOccurred: function(error, errorString) {
             console.log("Media error:", errorString)
         }
@@ -484,6 +484,10 @@ ApplicationWindow {
                         close()
                     }
 
+                    ButtonGroup {
+                        id: audioButtonGroup
+                    }
+
                     Repeater {
                         model: mediaPlayer.audioTracks.length
                         MenuItem {
@@ -499,10 +503,11 @@ ApplicationWindow {
                                 return "Track " + (index + 1)
                             }
                             checkable: true
-                            checked: MediaController.activeAudioTrack === index
+                            checked: mediaPlayer.activeAudioTrack === index
+                            ButtonGroup.group: audioButtonGroup
                             onTriggered: {
                                 mediaPlayer.activeAudioTrack = index
-                                audioTrackOverlay.show()
+                                trackOverlay.show(true)
                             }
                         }
                     }
@@ -525,13 +530,18 @@ ApplicationWindow {
                         close()
                     }
 
+                    ButtonGroup {
+                        id: subtitleButtonGroup
+                    }
+
                     MenuItem {
                         text: "Off"
                         checkable: true
-                        checked: MediaController.activeSubtitleTrack === -1
+                        checked: mediaPlayer.activeSubtitleTrack === -1
+                        ButtonGroup.group: subtitleButtonGroup
                         onTriggered: {
                             mediaPlayer.activeSubtitleTrack = -1
-                            subtitleOverlay.show()
+                            trackOverlay.show(false)
                         }
                     }
 
@@ -552,10 +562,11 @@ ApplicationWindow {
                                 return "Track " + (index + 1)
                             }
                             checkable: true
-                            checked: MediaController.activeSubtitleTrack === index
+                            checked: mediaPlayer.activeSubtitleTrack === index
+                            ButtonGroup.group: subtitleButtonGroup
                             onTriggered: {
                                 mediaPlayer.activeSubtitleTrack = index
-                                subtitleOverlay.show()
+                                trackOverlay.show(false)
                             }
                         }
                     }
@@ -787,7 +798,7 @@ ApplicationWindow {
     }
 
     Rectangle {
-        id: audioTrackOverlay
+        id: trackOverlay
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.margins: 20
@@ -795,33 +806,25 @@ ApplicationWindow {
         height: 80
         color: Qt.rgba(0, 0, 0, 0.8)
         opacity: 0.0
+        radius: 5
         z: 1001
+
+        property string trackType: ""
+        property string trackText: ""
 
         Column {
             anchors.centerIn: parent
             spacing: 5
 
             Label {
-                text: "Audio Track"
+                text: trackOverlay.trackType
                 color: "white"
                 font.bold: true
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
             Label {
-                text: {
-                    var current = MediaController.activeAudioTrack
-                    if (current >= 0 && current < mediaPlayer.audioTracks.length) {
-                        var track = mediaPlayer.audioTracks[current]
-                        if (track && track.stringValue) {
-                            var language = track.stringValue(6) || ""
-                            var title = track.stringValue(0) || ""
-                            return title || language || "Track " + (current + 1)
-                        }
-                        return "Track " + (current + 1)
-                    }
-                    return "None"
-                }
+                text: trackOverlay.trackText
                 color: "white"
                 anchors.horizontalCenter: parent.horizontalCenter
             }
@@ -832,71 +835,46 @@ ApplicationWindow {
         }
 
         Timer {
-            id: audioTrackHideTimer
+            id: trackHideTimer
             interval: 2000
-            onTriggered: audioTrackOverlay.opacity = 0.0
+            onTriggered: trackOverlay.opacity = 0.0
         }
 
-        function show() {
-            opacity = 1.0
-            audioTrackHideTimer.restart()
-        }
-    }
-
-    Rectangle {
-        id: subtitleOverlay
-        anchors.top: audioTrackOverlay.bottom
-        anchors.right: parent.right
-        anchors.margins: 20
-        width: 200
-        height: 80
-        color: Qt.rgba(0, 0, 0, 0.8)
-        opacity: 0.0
-        z: 1001
-
-        Column {
-            anchors.centerIn: parent
-            spacing: 5
-
-            Label {
-                text: "Subtitles"
-                color: "white"
-                font.bold: true
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
-
-            Label {
-                text: {
-                    var current = MediaController.activeSubtitleTrack
-                    if (current >= 0 && current < mediaPlayer.subtitleTracks.length) {
-                        var track = mediaPlayer.subtitleTracks[current]
-                        if (track && track.stringValue) {
-                            var language = track.stringValue(6) || ""
-                            var title = track.stringValue(0) || ""
-                            return title || language || "Track " + (current + 1)
-                        }
-                        return "Track " + (current + 1)
+        function show(audio) {
+            if (audio) {
+                trackType = "Audio Track"
+                var current = mediaPlayer.activeAudioTrack
+                if (current >= 0 && current < mediaPlayer.audioTracks.length) {
+                    var track = mediaPlayer.audioTracks[current]
+                    if (track && track.stringValue) {
+                        var language = track.stringValue(6) || ""
+                        var title = track.stringValue(0) || ""
+                        trackText = title || language || "Track " + (current + 1)
+                    } else {
+                        trackText = "Track " + (current + 1)
                     }
-                    return "Off"
+                } else {
+                    trackText = "None"
                 }
-                color: "white"
-                anchors.horizontalCenter: parent.horizontalCenter
+            } else {
+                trackType = "Subtitles"
+                var current = mediaPlayer.activeSubtitleTrack
+                if (current >= 0 && current < mediaPlayer.subtitleTracks.length) {
+                    var track = mediaPlayer.subtitleTracks[current]
+                    if (track && track.stringValue) {
+                        var language = track.stringValue(6) || ""
+                        var title = track.stringValue(0) || ""
+                        trackText = title || language || "Track " + (current + 1)
+                    } else {
+                        trackText = "Track " + (current + 1)
+                    }
+                } else {
+                    trackText = "Off"
+                }
             }
-        }
 
-        Behavior on opacity {
-            NumberAnimation { duration: 200 }
-        }
-
-        Timer {
-            id: subtitleHideTimer
-            interval: 2000
-            onTriggered: subtitleOverlay.opacity = 0.0
-        }
-
-        function show() {
             opacity = 1.0
-            subtitleHideTimer.restart()
+            trackHideTimer.restart()
         }
     }
 
@@ -1123,6 +1101,10 @@ ApplicationWindow {
                     title: "Audio Track"
                     enabled: mediaPlayer.audioTracks.length > 1
 
+                    ButtonGroup {
+                        id: contextAudioButtonGroup
+                    }
+
                     Repeater {
                         model: mediaPlayer.audioTracks.length
                         MenuItem {
@@ -1139,7 +1121,10 @@ ApplicationWindow {
                             }
                             checkable: true
                             checked: mediaPlayer.activeAudioTrack === index
-                            onTriggered: mediaPlayer.activeAudioTrack = index
+                            ButtonGroup.group: contextAudioButtonGroup
+                            onTriggered: {
+                                mediaPlayer.activeAudioTrack = index
+                            }
                         }
                     }
                 }
@@ -1148,11 +1133,18 @@ ApplicationWindow {
                     title: "Subtitles"
                     enabled: mediaPlayer.subtitleTracks.length > 0
 
+                    ButtonGroup {
+                        id: contextSubtitleButtonGroup
+                    }
+
                     MenuItem {
                         text: "Off"
                         checkable: true
                         checked: mediaPlayer.activeSubtitleTrack === -1
-                        onTriggered: mediaPlayer.activeSubtitleTrack = -1
+                        ButtonGroup.group: contextSubtitleButtonGroup
+                        onTriggered: {
+                            mediaPlayer.activeSubtitleTrack = -1
+                        }
                     }
 
                     MenuSeparator {}
@@ -1173,7 +1165,10 @@ ApplicationWindow {
                             }
                             checkable: true
                             checked: mediaPlayer.activeSubtitleTrack === index
-                            onTriggered: mediaPlayer.activeSubtitleTrack = index
+                            ButtonGroup.group: contextSubtitleButtonGroup
+                            onTriggered: {
+                                mediaPlayer.activeSubtitleTrack = index
+                            }
                         }
                     }
                 }

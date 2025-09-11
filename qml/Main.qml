@@ -1,4 +1,4 @@
-    pragma ComponentBehavior: Bound
+pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Controls.FluentWinUI3
@@ -18,6 +18,7 @@ ApplicationWindow {
     title: "MediaPlayer"
 
     property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsDialog.visible || contextMenu.opened
+    property bool mouseOverControls: false  // Add hover tracking
 
     property var currentAudioOutput: null
 
@@ -160,7 +161,7 @@ ApplicationWindow {
                 return
             }
 
-            if (window.anyMenuOpen) {
+            if (window.anyMenuOpen || window.mouseOverControls) {  // Check hover state
                 hideTimer.restart()
                 return
             }
@@ -604,15 +605,11 @@ ApplicationWindow {
 
     VolumeIndicator {
         z: 1001
-        //parent: window.contentItem
         visible: Common.currentMediaPath !== ""
         opacity: 0.0
         id: volumeIndicator
-        //anchors.top: parent.top
-        //anchors.left: parent.left
         y: controlsToolbar.y - height - 20
         x: (parent.width - width) / 2
-        //anchors.margins: 20
         value: volumeSlider.value
 
         Behavior on opacity {
@@ -662,7 +659,16 @@ ApplicationWindow {
             hoverEnabled: true
             acceptedButtons: Qt.NoButton
             onPositionChanged: window.showControls()
-            onEntered: window.showControls()
+            onEntered: {
+                window.mouseOverControls = true
+                window.showControls()
+            }
+            onExited: {
+                window.mouseOverControls = false
+                if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
+                    hideTimer.restart()
+                }
+            }
             propagateComposedEvents: true
         }
 
@@ -730,7 +736,6 @@ ApplicationWindow {
                     if (Common.currentMediaPath === "") return ""
                     return Common.getFileName(Common.currentMediaPath)
                 }
-                //color: "white"
                 font.pointSize: 11
                 font.bold: true
                 width: Math.min(400, implicitWidth)
@@ -746,7 +751,6 @@ ApplicationWindow {
                     }
                     return ""
                 }
-                //color: "white"
                 font.pointSize: 9
                 opacity: 0.8
                 visible: text !== ""
@@ -1422,7 +1426,16 @@ ApplicationWindow {
             hoverEnabled: true
             acceptedButtons: Qt.NoButton
             onPositionChanged: window.showControls()
-            onEntered: window.showControls()
+            onEntered: {
+                window.mouseOverControls = true
+                window.showControls()
+            }
+            onExited: {
+                window.mouseOverControls = false
+                if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
+                    hideTimer.restart()
+                }
+            }
             propagateComposedEvents: true
         }
 

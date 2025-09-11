@@ -23,6 +23,12 @@ ApplicationWindow {
 
     property var currentAudioOutput: null
 
+    onAnyMenuOpenChanged: {
+        if (!anyMenuOpen) {
+            menuClosedRecentlyTimer.restart()
+        }
+    }
+
     Component.onDestruction: {
         MediaController.setPreventSleep(false)
     }
@@ -452,7 +458,7 @@ ApplicationWindow {
         rightInset: 0
         bottomInset: 0
 
-        ToolButton {
+        NFToolButton {
             id: openButton
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
@@ -468,7 +474,7 @@ ApplicationWindow {
             anchors.verticalCenter: parent.verticalCenter
             height: 40
 
-            ToolButton {
+            NFToolButton {
                 id: audioTracksButton
                 Layout.preferredHeight: 40
                 icon.source: "qrc:/icons/track.svg"
@@ -514,7 +520,7 @@ ApplicationWindow {
                 }
             }
 
-            ToolButton {
+            NFToolButton {
                 id: subtitleTracksButton
                 Layout.preferredHeight: 40
                 icon.source: "qrc:/icons/subtitle.svg"
@@ -573,7 +579,7 @@ ApplicationWindow {
                 }
             }
 
-            ToolButton {
+            NFToolButton {
                 id: settingsButton
                 Layout.preferredHeight: 40
                 icon.source: "qrc:/icons/cog.svg"
@@ -706,7 +712,7 @@ ApplicationWindow {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 5
 
-            ToolButton {
+            NFToolButton {
                 height: 45
                 width: 45
                 icon.source: "qrc:/icons/file.svg"
@@ -714,7 +720,7 @@ ApplicationWindow {
                 onClicked: fileDialog.open()
             }
 
-            ToolButton {
+            NFToolButton {
                 icon.source: "qrc:/icons/track.svg"
                 visible: mediaPlayer.audioTracks.length > 1
                 width: 45
@@ -722,7 +728,7 @@ ApplicationWindow {
                 onClicked: audioTracksMenu.popup()
             }
 
-            ToolButton {
+            NFToolButton {
                 icon.source: "qrc:/icons/subtitle.svg"
                 visible: mediaPlayer.subtitleTracks.length > 0
                 width: 45
@@ -786,7 +792,7 @@ ApplicationWindow {
             }
         }
 
-        ToolButton {
+        NFToolButton {
             id: settingsToolButton
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
@@ -1048,6 +1054,12 @@ ApplicationWindow {
         function trigger() { showAnim.restart() }
     }
 
+    Timer {
+        id: menuClosedRecentlyTimer
+        interval: 200
+        onTriggered: {}
+    }
+
     Item {
         anchors.fill: parent
 
@@ -1201,6 +1213,7 @@ ApplicationWindow {
             TapHandler {
                 acceptedButtons: Qt.LeftButton
                 onTapped: {
+                    if (menuClosedRecentlyTimer.running) return
                     if (!videoOutput.waitingForDoubleClick) {
                         videoOutput.waitingForDoubleClick = true
                         singleClickTimer.start()
@@ -1549,7 +1562,7 @@ ApplicationWindow {
             }
         }
 
-        ToolButton {
+        NFToolButton {
             id: sleepButton
             anchors.left: parent.left
             anchors.leftMargin: 10
@@ -1569,7 +1582,7 @@ ApplicationWindow {
             anchors.verticalCenterOffset: 20
             spacing: 6
 
-            ToolButton {
+            NFToolButton {
                 icon.source: "qrc:/icons/prev.svg"
                 width: 48
                 height: 48
@@ -1589,7 +1602,7 @@ ApplicationWindow {
                 }
             }
 
-            ToolButton {
+            NFToolButton {
                 icon.source: "qrc:/icons/rewind.svg"
                 width: 48
                 height: 48
@@ -1605,7 +1618,7 @@ ApplicationWindow {
                 ToolTip.text: "Rewind 10 seconds"
             }
 
-            ToolButton {
+            NFToolButton {
                 icon.source: mediaPlayer.playbackState === MediaPlayer.PlayingState ?
                                  "qrc:/icons/pause.svg" : "qrc:/icons/play.svg"
                 width: 48
@@ -1622,7 +1635,7 @@ ApplicationWindow {
                 ToolTip.text: mediaPlayer.playbackState === MediaPlayer.PlayingState ? "Pause" : "Play"
             }
 
-            ToolButton {
+            NFToolButton {
                 icon.source: "qrc:/icons/forward.svg"
                 width: 48
                 height: 48
@@ -1638,7 +1651,7 @@ ApplicationWindow {
                 ToolTip.text: "Forward 10 seconds"
             }
 
-            ToolButton {
+            NFToolButton {
                 icon.source: "qrc:/icons/next.svg"
                 width: 48
                 height: 48
@@ -1658,7 +1671,7 @@ ApplicationWindow {
             anchors.verticalCenterOffset: 20
             spacing: 6
 
-            ToolButton {
+            NFToolButton {
                 id: muteButton
                 icon.source: checked || volumeSlider.value === 0 ? "qrc:/icons/volume_mute.svg" : "qrc:/icons/volume.svg"
                 checkable: true
@@ -1679,7 +1692,7 @@ ApplicationWindow {
                 ToolTip.text: "Volume: " + Math.round(value * 100) + "%"
             }
 
-            ToolButton {
+            NFToolButton {
                 icon.source: window.visibility === Window.FullScreen ? "qrc:/icons/fit.svg" : "qrc:/icons/fullscreen.svg"
                 width: 48
                 height: 48

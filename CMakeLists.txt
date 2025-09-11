@@ -46,6 +46,9 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
 set(QML_FILES
     qml/Main.qml
     qml/VolumeIndicator.qml
+    qml/SettingsDialog.qml
+    qml/NFToolButton.qml
+    qml/NFSlider.qml
 )
 
 set(QML_SINGLETONS
@@ -61,7 +64,6 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
     URI Odizinne.${CMAKE_PROJECT_NAME}
     VERSION 1.0
     QML_FILES ${QML_FILES} ${QML_SINGLETONS}
-    QML_FILES qml/SettingsDialog.qml
 )
 
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES

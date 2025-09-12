@@ -19,5 +19,6 @@
         <file>subtitle.svg</file>
         <file>clock.svg</file>
         <file>icon.png</file>
+        <file>info.svg</file>
     </qresource>
 </RCC>

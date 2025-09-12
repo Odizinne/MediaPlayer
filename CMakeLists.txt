@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 
-project(MediaPlayer VERSION 0.3.1 LANGUAGES CXX)
+project(MediaPlayer VERSION 0.3.2 LANGUAGES CXX)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Installation directory" FORCE)
 set(CMAKE_CXX_STANDARD 20)
@@ -49,6 +49,7 @@ set(QML_FILES
     qml/SettingsDialog.qml
     qml/NFToolButton.qml
     qml/NFSlider.qml
+    qml/AboutDialog.qml
 )
 
 set(QML_SINGLETONS

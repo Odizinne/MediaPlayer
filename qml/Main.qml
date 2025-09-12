@@ -587,6 +587,12 @@ ApplicationWindow {
 
                 onClicked: settingsDialog.open()
             }
+
+            NFToolButton {
+                Layout.preferredHeight: 40
+                icon.source: "qrc:/icons/info.svg"
+                onClicked: aboutDialog.open()
+            }
         }
 
         Label {
@@ -605,6 +611,11 @@ ApplicationWindow {
             elide: Text.ElideMiddle
             opacity: 0.5
         }
+    }
+
+    AboutDialog {
+        id: aboutDialog
+        anchors.centerIn: parent
     }
 
     SettingsDialog {
@@ -794,12 +805,22 @@ ApplicationWindow {
 
         NFToolButton {
             id: settingsToolButton
-            anchors.right: parent.right
+            anchors.right: aboutBtn.left
             anchors.verticalCenter: parent.verticalCenter
             icon.source: "qrc:/icons/cog.svg"
             height: 45
             width: 45
             onClicked: settingsDialog.open()
+        }
+
+        NFToolButton {
+            id: aboutBtn
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            height: 45
+            width: 45
+            icon.source: "qrc:/icons/info.svg"
+            onClicked: aboutDialog.open()
         }
     }
 

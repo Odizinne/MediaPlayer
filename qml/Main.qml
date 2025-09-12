@@ -18,7 +18,7 @@ ApplicationWindow {
     title: "MediaPlayer"
 
     property bool toolbarsAnimating: false
-    property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsDialog.visible || contextMenu.opened
+    property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsDialog.visible || contextMenu.opened || aboutDialog.visible
     property bool mouseOverControls: false
 
     property var currentAudioOutput: null

@@ -25,6 +25,26 @@ set(SOURCES
     src/main.cpp
 )
 
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_COMMIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+else()
+    set(GIT_COMMIT_HASH "unknown")
+endif()
+
+string(TIMESTAMP BUILD_TIMESTAMP "%Y-%m-%d %H:%M:%S UTC" UTC)
+
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/version.h"
+)
+
 set(APP_ICON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/icon.ico")
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/src/windows_metadata.rc.in"
@@ -41,6 +61,7 @@ qt_add_executable(${CMAKE_PROJECT_NAME}
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 set(QML_FILES
@@ -65,6 +86,7 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
     URI Odizinne.${CMAKE_PROJECT_NAME}
     VERSION 1.0
     QML_FILES ${QML_FILES} ${QML_SINGLETONS}
+    SOURCES include/versionhelper.h src/versionhelper.cpp
 )
 
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES

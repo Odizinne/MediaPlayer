@@ -1,9 +1,10 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.FluentWinUI3
+import Odizinne.MediaPlayer
 
 Dialog {
-    width: 300
+    width: 310
 
     ColumnLayout {
         anchors.fill: parent
@@ -17,7 +18,7 @@ Dialog {
 
         Label {
             Layout.alignment: Qt.AlignCenter
-            text: "MediaPlayer"
+            text: VersionHelper.getAppName()
             font.pixelSize: 22
             font.bold: true
         }
@@ -28,7 +29,7 @@ Dialog {
 
             Label {
                 Layout.alignment: Qt.AlignCenter
-                text: "0.3.1"
+                text: VersionHelper.getAppVersion()
                 font.pixelSize: 11
                 opacity: 0.7
             }
@@ -42,7 +43,7 @@ Dialog {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Qt.openUrlExternally("https://github.com/Odizinne/MediaPlayer")
+                    onClicked: Qt.openUrlExternally("https://github.com/Odizinne/" + VersionHelper.getAppName())
                 }
             }
         }

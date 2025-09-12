@@ -459,3 +459,4 @@ void MediaController::selectDefaultTracks()
 {
     qDebug() << "Track selection is now handled in QML";
 }
+

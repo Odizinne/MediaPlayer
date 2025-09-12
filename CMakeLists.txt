@@ -17,11 +17,13 @@ qt_standard_project_setup(REQUIRES 6.8)
 set(HEADERS
     include/mediacontroller.h
     include/windowspowereventfilter.h
+    include/versionhelper.h
 )
 
 set(SOURCES
     src/mediacontroller.cpp
     src/windowspowereventfilter.cpp
+    src/versionhelper.cpp
     src/main.cpp
 )
 
@@ -86,7 +88,6 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
     URI Odizinne.${CMAKE_PROJECT_NAME}
     VERSION 1.0
     QML_FILES ${QML_FILES} ${QML_SINGLETONS}
-    SOURCES include/versionhelper.h src/versionhelper.cpp
 )
 
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES

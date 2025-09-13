@@ -20,6 +20,7 @@ ApplicationWindow {
     property bool toolbarsAnimating: false
     property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsDialog.visible || contextMenu.opened || aboutDialog.visible
     property bool mouseOverControls: false
+    property string currentTime: Qt.formatTime(new Date(), "hh:mm")
 
     property var currentAudioOutput: null
 
@@ -51,6 +52,11 @@ ApplicationWindow {
         function onTracksChanged() {
             audioTracksMenu.updateMenu()
             subtitleTracksMenu.updateMenu()
+        }
+
+        function onSystemResumed() {
+            Qt.callLater(window.performAudioRecovery)
+            window.currentTime = Qt.formatTime(new Date(), "hh:mm")
         }
     }
 
@@ -813,7 +819,7 @@ ApplicationWindow {
             Label {
                 anchors.verticalCenter: parent.verticalCenter
                 color: palette.windowText
-                text: Qt.formatTime(new Date(), "hh:mm")
+                text: window.currentTime
                 font.pointSize: 11
                 opacity: 0.7
             }

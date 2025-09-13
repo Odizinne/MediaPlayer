@@ -5,6 +5,7 @@ import Odizinne.MediaPlayer
 
 Dialog {
     width: 310
+    modal: true
 
     ColumnLayout {
         anchors.fill: parent

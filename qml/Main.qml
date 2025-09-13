@@ -34,12 +34,16 @@ ApplicationWindow {
         MediaController.setPreventSleep(false)
     }
 
+    Timer {
+        id: clockTimer
+        interval: 60000
+        running: true
+        repeat: true
+        onTriggered: window.currentTime = Qt.formatTime(new Date(), "hh:mm")
+    }
+
     Connections {
         target: MediaController
-        function onSystemResumed() {
-            Qt.callLater(window.performAudioRecovery)
-        }
-
         function onTrackSelectionRequested(audioLanguage, subtitleLanguage, autoSelectSubtitles) {
             console.log("Track selection requested - Audio:", audioLanguage, "Subtitle:", subtitleLanguage, "Auto:", autoSelectSubtitles)
             if (mediaPlayer.audioTracks.length > 0 || mediaPlayer.subtitleTracks.length > 0) {

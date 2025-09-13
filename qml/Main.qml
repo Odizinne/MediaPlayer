@@ -147,10 +147,10 @@ ApplicationWindow {
     function showControls() {
         if (window.toolbarsAnimating) return
         controlsToolbar.opacity = 1.0
-        controlsToolbar.anchors.bottomMargin = UserSettings.floatingUi ? 20 : 0
+        //controlsToolbar.anchors.bottomMargin = UserSettings.floatingUi ? 20 : 0
 
         fullscreenToolbar.opacity = 1.0
-        fullscreenToolbar.anchors.topMargin = UserSettings.floatingUi ? 20 : 0
+        //fullscreenToolbar.anchors.topMargin = UserSettings.floatingUi ? 20 : 0
 
         MediaController.setCursorState(MediaController.Normal)
 
@@ -176,8 +176,8 @@ ApplicationWindow {
 
             controlsToolbar.opacity = 0.0
             fullscreenToolbar.opacity = 0.0
-            controlsToolbar.anchors.bottomMargin = -controlsToolbar.height
-            fullscreenToolbar.anchors.topMargin = -fullscreenToolbar.height
+            //controlsToolbar.anchors.bottomMargin = -controlsToolbar.height
+            //fullscreenToolbar.anchors.topMargin = -fullscreenToolbar.height
 
             MediaController.setCursorState(MediaController.Hidden)
         }
@@ -659,7 +659,7 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.topMargin: -height
+        anchors.topMargin: opacity > 0 ? (UserSettings.floatingUi ? 20 : 0) : -height
         anchors.rightMargin: UserSettings.floatingUi ? 20 : 0
         anchors.leftMargin: UserSettings.floatingUi ? 20 : 0
         anchors.bottomMargin: UserSettings.floatingUi ? 20 : 0
@@ -708,6 +708,22 @@ ApplicationWindow {
                 duration: 300
                 easing.type: Easing.InOutQuad
                 onRunningChanged: window.toolbarsAnimating = running
+            }
+        }
+
+        Behavior on anchors.rightMargin {
+            NumberAnimation {
+                duration: 300
+                easing.type: Easing.InOutQuad
+                //onRunningChanged: window.toolbarsAnimating = running
+            }
+        }
+
+        Behavior on anchors.leftMargin {
+            NumberAnimation {
+                duration: 300
+                easing.type: Easing.InOutQuad
+                //onRunningChanged: window.toolbarsAnimating = running
             }
         }
 
@@ -1460,7 +1476,7 @@ ApplicationWindow {
         visible: Common.currentMediaPath !== ""
         opacity: 1.0
         height: 120
-        anchors.bottomMargin: -height
+        anchors.bottomMargin: opacity > 0 ? (UserSettings.floatingUi ? 20 : 0) : -height
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
@@ -1493,6 +1509,22 @@ ApplicationWindow {
                 duration: 300
                 easing.type: Easing.InOutQuad
                 onRunningChanged: window.toolbarsAnimating = running
+            }
+        }
+
+        Behavior on anchors.rightMargin {
+            NumberAnimation {
+                duration: 300
+                easing.type: Easing.InOutQuad
+                //onRunningChanged: window.toolbarsAnimating = running
+            }
+        }
+
+        Behavior on anchors.leftMargin {
+            NumberAnimation {
+                duration: 300
+                easing.type: Easing.InOutQuad
+                //onRunningChanged: window.toolbarsAnimating = running
             }
         }
 

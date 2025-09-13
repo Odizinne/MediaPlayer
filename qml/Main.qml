@@ -293,7 +293,7 @@ ApplicationWindow {
 
     MediaPlayer {
         id: mediaPlayer
-        audioOutput: audioOutputLoader.item as AudioOutput
+        audioOutput: playbackState === MediaPlayer.PlayingState ? (audioOutputLoader.item as AudioOutput) : null
         videoOutput: Common.isVideo ? videoOutput : null
 
         onPlaybackStateChanged: {

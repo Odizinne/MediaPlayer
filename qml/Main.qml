@@ -147,10 +147,10 @@ ApplicationWindow {
     function showControls() {
         if (window.toolbarsAnimating) return
         controlsToolbar.opacity = 1.0
-        controlsToolbar.anchors.bottomMargin = 20
+        controlsToolbar.anchors.bottomMargin = UserSettings.floatingUi ? 20 : 0
 
         fullscreenToolbar.opacity = 1.0
-        fullscreenToolbar.anchors.topMargin = 20
+        fullscreenToolbar.anchors.topMargin = UserSettings.floatingUi ? 20 : 0
 
         MediaController.setCursorState(MediaController.Normal)
 
@@ -660,9 +660,9 @@ ApplicationWindow {
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.topMargin: -height
-        anchors.rightMargin: 20
-        anchors.leftMargin: 20
-        anchors.bottomMargin: 20
+        anchors.rightMargin: UserSettings.floatingUi ? 20 : 0
+        anchors.leftMargin: UserSettings.floatingUi ? 20 : 0
+        anchors.bottomMargin: UserSettings.floatingUi ? 20 : 0
 
         leftPadding: 0
         rightPadding: 0
@@ -713,7 +713,7 @@ ApplicationWindow {
 
         background: Rectangle {
             color: palette.window
-            radius: 8
+            radius: UserSettings.floatingUi ? 8 : 0
             opacity: UserSettings.uiOpacity
         }
 
@@ -1464,8 +1464,8 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.leftMargin: 20
-        anchors.rightMargin: 20
+        anchors.leftMargin: UserSettings.floatingUi ? 20 : 0
+        anchors.rightMargin: UserSettings.floatingUi ? 20 : 0
 
         HoverHandler {
             id: controlsToolbarHover
@@ -1506,7 +1506,7 @@ ApplicationWindow {
 
         background: Rectangle {
             color: Common.isVideo ? palette.window : palette.base
-            radius: 8
+            radius: UserSettings.floatingUi ? 8 : 0
             opacity: Common.isVideo ? UserSettings.uiOpacity : 1.0
         }
 
@@ -1526,7 +1526,7 @@ ApplicationWindow {
                 horizontalAlignment: Text.AlignRight
             }
 
-            Slider {
+            NFSlider {
                 id: progressSlider
 
                 from: 0
@@ -1702,7 +1702,7 @@ ApplicationWindow {
                 ToolTip.text: checked ? "Unmute" : "Mute"
             }
 
-            Slider {
+            NFSlider {
                 id: volumeSlider
                 width: 120
                 anchors.verticalCenter: parent.verticalCenter

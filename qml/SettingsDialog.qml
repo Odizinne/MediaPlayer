@@ -93,6 +93,18 @@ Dialog {
 
         RowLayout {
             Label {
+                text: "Floating Ui"
+                Layout.fillWidth: true
+            }
+
+            Switch {
+                checked: UserSettings.floatingUi
+                onClicked: UserSettings.floatingUi = checked
+            }
+        }
+
+        RowLayout {
+            Label {
                 text: "Fullscreen Ui opacity"
                 Layout.fillWidth: true
             }

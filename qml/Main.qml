@@ -121,11 +121,8 @@ ApplicationWindow {
     function playNext() {
         var nextFile = MediaController.getNextFile()
         if (nextFile !== "") {
-            // Properly stop current video and clear video output
             mediaPlayer.stop()
             mediaPlayer.source = ""
-
-            // Wait a moment for cleanup, then load new video
             Qt.callLater(() => {
                 Common.loadMedia(nextFile)
                 mediaPlayer.source = nextFile
@@ -139,11 +136,8 @@ ApplicationWindow {
         } else {
             var previousFile = MediaController.getPreviousFile()
             if (previousFile !== "") {
-                // Properly stop current video and clear video output
                 mediaPlayer.stop()
                 mediaPlayer.source = ""
-
-                // Wait a moment for cleanup, then load new video
                 Qt.callLater(() => {
                     Common.loadMedia(previousFile)
                     mediaPlayer.source = previousFile
@@ -157,13 +151,8 @@ ApplicationWindow {
     function showControls() {
         if (window.toolbarsAnimating) return
         controlsToolbar.opacity = 1.0
-        //controlsToolbar.anchors.bottomMargin = UserSettings.floatingUi ? 20 : 0
-
         fullscreenToolbar.opacity = 1.0
-        //fullscreenToolbar.anchors.topMargin = UserSettings.floatingUi ? 20 : 0
-
         MediaController.setCursorState(MediaController.Normal)
-
         if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
             hideTimer.restart()
         } else {
@@ -178,17 +167,12 @@ ApplicationWindow {
             if (!Common.isVideo) {
                 return
             }
-
             if (window.anyMenuOpen || window.mouseOverControls) {
                 hideTimer.restart()
                 return
             }
-
             controlsToolbar.opacity = 0.0
             fullscreenToolbar.opacity = 0.0
-            //controlsToolbar.anchors.bottomMargin = -controlsToolbar.height
-            //fullscreenToolbar.anchors.topMargin = -fullscreenToolbar.height
-
             MediaController.setCursorState(MediaController.Hidden)
         }
     }
@@ -633,32 +617,21 @@ ApplicationWindow {
         anchors.centerIn: parent
     }
 
+    ContinuePlayingDialog {
+        id: continuePlayingDialog
+        anchors.centerIn: parent
+        onAccepted: {
+            window.playNext()
+        }
+    }
+
     VolumeIndicator {
         z: 1001
         visible: Common.currentMediaPath !== ""
-        opacity: 0.0
         id: volumeIndicator
         y: controlsToolbar.y - height - 20
         x: (parent.width - width) / 2
         value: volumeSlider.value
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 200
-                easing.type: Easing.InOutQuad
-            }
-        }
-
-        Timer {
-            id: volumeHideTimer
-            interval: 1500
-            onTriggered: volumeIndicator.opacity = 0.0
-        }
-
-        function show() {
-            opacity = 1.0
-            volumeHideTimer.restart()
-        }
     }
 
     ToolBar {
@@ -931,174 +904,38 @@ ApplicationWindow {
         }
     }
 
-    Item {
-        id: rewindOverlay
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.left: parent.left
-        anchors.leftMargin: parent.width / 4
-        width: 120
-        height: 120
-        z: 1000
-        opacity: 0.0
-        scale: 1.0
-
-        Rectangle {
-            anchors.fill: parent
-            color: palette.window
-            opacity: 0.5
-            radius: width
-        }
-
-        Column {
-            anchors.centerIn: parent
-            spacing: 5
-
-            IconImage {
-                anchors.horizontalCenter: parent.horizontalCenter
-                source: "qrc:/icons/rewind.svg"
-                sourceSize.width: 60
-                sourceSize.height: 60
-                color: palette.windowText
-            }
-
-            Label {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: "-10s"
-                color: palette.windowText
-                font.pointSize: 12
-                font.bold: true
-            }
-        }
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 200
-                easing.type: Easing.InOutQuad
-            }
-        }
-
-        Timer {
-            id: rewindHideTimer
-            interval: 1500
-            onTriggered: rewindOverlay.opacity = 0.0
-        }
-
-        function trigger() {
-            if (forwardOverlay.opacity > 0) {
-                forwardHideTimer.stop()
-                forwardOverlay.opacity = 0.0
-            }
-
-            opacity = 1.0
-            rewindHideTimer.restart()
-        }
-    }
-
-    Item {
+    ForwardOverlay {
         id: forwardOverlay
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
         anchors.rightMargin: parent.width / 4
-        width: 120
-        height: 120
-        z: 1000
-        opacity: 0.0
-        scale: 1.0
-
-        Rectangle {
-            anchors.fill: parent
-            color: palette.window
-            opacity: 0.5
-            radius: width
-        }
-
-        Column {
-            anchors.centerIn: parent
-            spacing: 5
-
-            IconImage {
-                anchors.horizontalCenter: parent.horizontalCenter
-                source: "qrc:/icons/forward.svg"
-                sourceSize.width: 60
-                sourceSize.height: 60
-                color: palette.windowText
+        Connections {
+            target: rewindOverlay
+            function onTriggered() {
+                forwardOverlay.hide()
             }
-
-            Label {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: "+10s"
-                color: palette.windowText
-                font.pointSize: 12
-                font.bold: true
-            }
-        }
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 200
-                easing.type: Easing.InOutQuad
-            }
-        }
-
-        Timer {
-            id: forwardHideTimer
-            interval: 1500
-            onTriggered: forwardOverlay.opacity = 0.0
-        }
-
-        function trigger() {
-            if (rewindOverlay.opacity > 0) {
-                rewindHideTimer.stop()
-                rewindOverlay.opacity = 0.0
-            }
-
-            opacity = 1.0
-            forwardHideTimer.restart()
         }
     }
 
-    Item {
+    RewindOverlay {
+        id: rewindOverlay
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.left: parent.left
+        anchors.leftMargin: parent.width / 4
+        Connections {
+            target: forwardOverlay
+            function onTriggered() {
+                rewindOverlay.hide()
+            }
+        }
+    }
+
+    PlaybackOverlay {
         id: overlay
         anchors.centerIn: parent
-        width: 120
-        height: 120
-        z: 1000
-        opacity: 0.0
-        scale: 0.0
-
-        Rectangle {
-            anchors.fill: parent
-            color: palette.window
-            opacity: 0.5
-            radius: width
-        }
-
-        IconImage {
-            anchors.fill: parent
-            source: mediaPlayer.playbackState === MediaPlayer.PlayingState
-                    ? "qrc:/icons/pause.svg"
-                    : "qrc:/icons/play.svg"
-            sourceSize.width: 80
-            sourceSize.height: 80
-            color: palette.windowText
-        }
-
-        ParallelAnimation {
-            id: showAnim
-            running: false
-
-            SequentialAnimation {
-                PropertyAnimation { target: overlay; property: "scale"; from: 0.0; to: 0.25; duration: 150; easing.type: Easing.OutBack }
-                PropertyAnimation { target: overlay; property: "scale"; from: 0.25; to: 1.0; duration: 650; easing.type: Easing.OutCubic }
-            }
-
-            SequentialAnimation {
-                PropertyAnimation { target: overlay; property: "opacity"; from: 0; to: 1; duration: 150; easing.type: Easing.InQuad }
-                PropertyAnimation { target: overlay; property: "opacity"; from: 1; to: 0; duration: 650; easing.type: Easing.OutQuad }
-            }
-        }
-
-        function trigger() { showAnim.restart() }
+        source: mediaPlayer.playbackState === MediaPlayer.PlayingState
+                ? "qrc:/icons/pause.svg"
+                : "qrc:/icons/play.svg"
     }
 
     Timer {
@@ -1435,42 +1272,6 @@ ApplicationWindow {
                     }
                 }
                 drop.accepted = false
-            }
-        }
-    }
-
-    Dialog {
-        id: continuePlayingDialog
-        title: "Continue Playing?"
-        anchors.centerIn: parent
-        modal: true
-
-        onAboutToShow: {
-            window.showControls()
-            hideTimer.stop()
-        }
-
-        onAccepted: {
-            window.playNext()
-        }
-
-        onClosed: {
-            if (window.visibility === Window.FullScreen) {
-                hideTimer.restart()
-            }
-        }
-
-        footer: DialogButtonBox {
-            Button {
-                text: "Yes"
-                highlighted: true
-                DialogButtonBox.buttonRole: DialogButtonBox.AcceptRole
-                onClicked: continuePlayingDialog.accept()
-            }
-            Button {
-                text: "No"
-                DialogButtonBox.buttonRole: DialogButtonBox.RejectRole
-                onClicked: continuePlayingDialog.reject()
             }
         }
     }

@@ -73,6 +73,10 @@ set(QML_FILES
     qml/NFToolButton.qml
     qml/NFSlider.qml
     qml/AboutDialog.qml
+    qml/ContinuePlayingDialog.qml
+    qml/RewindOverlay.qml
+    qml/ForwardOverlay.qml
+    qml/PlaybackOverlay.qml
 )
 
 set(QML_SINGLETONS

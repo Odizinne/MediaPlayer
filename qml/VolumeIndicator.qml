@@ -5,18 +5,36 @@ import QtQuick
 import Odizinne.MediaPlayer
 
 Popup {
+    id: popup
     visible: true
     modal: false
+    opacity: 0.0
     background.implicitWidth: 200
     background.implicitHeight: 50
-    //height: contentItem.implicitHeight
     closePolicy: Popup.NoAutoClose
     property alias value: customProgressBar.value
     enter: null
     exit: null
 
-    contentItem: RowLayout {
+    Behavior on opacity {
+        NumberAnimation {
+            duration: 200
+            easing.type: Easing.InOutQuad
+        }
+    }
 
+    Timer {
+        id: volumeHideTimer
+        interval: 1500
+        onTriggered: popup.opacity = 0.0
+    }
+
+    function show() {
+        opacity = 1.0
+        volumeHideTimer.restart()
+    }
+
+    contentItem: RowLayout {
         IconImage {
             source: "qrc:/icons/volume.svg"
             sourceSize.width: 16

@@ -731,10 +731,29 @@ ApplicationWindow {
                 sourceSize.width: 14
                 sourceSize.height: 14
                 color: palette.windowText
+
+                SequentialAnimation on opacity {
+                    running: true
+                    loops: Animation.Infinite
+
+                    NumberAnimation {
+                        from: 1.0
+                        to: 0.5
+                        duration: 1000
+                    }
+
+                    NumberAnimation {
+                        from: 0.5
+                        to: 1.0
+                        duration: 1000
+                    }
+                }
             }
 
             Label {
                 anchors.verticalCenter: parent.verticalCenter
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
                 color: palette.windowText
                 text: Common.currentTime
                 font.pointSize: 11

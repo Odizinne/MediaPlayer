@@ -15,6 +15,7 @@ Item {
     property bool mouseOverControls: false
     property bool toolbarsAnimating: false
     property bool isTransitioningToFullscreen: false
+    property bool isPIP: false
 
     Timer {
         id: clockTimer

@@ -20,5 +20,8 @@
         <file>clock.svg</file>
         <file>icon.png</file>
         <file>info.svg</file>
+        <file>pip.svg</file>
+        <file>resize.svg</file>
+        <file>close.svg</file>
     </qresource>
 </RCC>

@@ -92,6 +92,7 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
     URI Odizinne.${CMAKE_PROJECT_NAME}
     VERSION 1.0
     QML_FILES ${QML_FILES} ${QML_SINGLETONS}
+    QML_FILES qml/PictureInPictureWindow.qml
 )
 
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES

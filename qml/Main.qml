@@ -20,7 +20,10 @@ ApplicationWindow {
     property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsDialog.visible || contextMenu.opened || aboutDialog.visible
     property var currentAudioOutput: null
 
-
+    PictureInPictureWindow {
+        id: pipWindow
+        isPlaying: mediaPlayer.playbackState === MediaPlayer.PlayingState
+    }
 
     ApplicationWindow {
         id: fullscreenOverlay
@@ -186,6 +189,38 @@ ApplicationWindow {
             } else {
                 mediaPlayer.setPosition(0)
             }
+        }
+    }
+
+    Connections {
+        target: pipWindow
+        function onExitPIP() {
+            window.togglePictureInPicture()
+        }
+
+        function onTogglePlayback() {
+            if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
+                mediaPlayer.pause()
+            } else {
+                mediaPlayer.play()
+            }
+        }
+    }
+
+    function togglePictureInPicture() {
+        if (Common.isPIP) {
+            Common.isPIP = false
+            videoOutput.parent = container
+            showNormal()
+            hideTimer.restart()
+            pipWindow.hidePIPWindow()
+        } else {
+            Common.isPIP = true
+            sleepButton.checked = false
+            videoOutput.parent = pipWindow.videoContainer
+            close()
+            hideTimer.stop()
+            pipWindow.showPIPWindow()
         }
     }
 
@@ -963,6 +998,7 @@ ApplicationWindow {
     }
 
     Item {
+        id: container
         anchors.fill: parent
 
         Rectangle {
@@ -998,6 +1034,7 @@ ApplicationWindow {
         VideoOutput {
             ContextMenu.menu: Menu {
                 id: contextMenu
+                enabled: !Common.isPIP
 
                 MenuItem {
                     text: qsTr("Copy File Path")
@@ -1570,6 +1607,16 @@ ApplicationWindow {
                 value: 1
                 ToolTip.visible: hovered
                 ToolTip.text: "Volume: " + Math.round(value * 100) + "%"
+            }
+
+            NFToolButton {
+                id: togglePIPButton
+                icon.source: "qrc:/icons/pip.svg"
+                width: 48
+                height: 48
+                ToolTip.visible: hovered
+                ToolTip.text: "Picture In Picture"
+                onClicked: window.togglePictureInPicture()
             }
 
             NFToolButton {

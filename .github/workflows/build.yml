@@ -27,7 +27,7 @@ jobs:
           version: ${{ env.QT_VERSION }}
           arch: 'win64_mingw'
           tools: 'tools_mingw1310'
-          modules: 'qtmultimedia'
+          modules: 'qtmultimedia qt5compat qtshadertools'
           add-tools-to-path: true
           cache: true
 

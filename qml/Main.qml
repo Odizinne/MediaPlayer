@@ -23,6 +23,8 @@ ApplicationWindow {
     PictureInPictureWindow {
         id: pipWindow
         isPlaying: mediaPlayer.playbackState === MediaPlayer.PlayingState
+        videoWidth: videoOutput ? videoOutput.videoSink.videoSize.width : 0
+        videoHeight: videoOutput ? videoOutput.videoSink.videoSize.height : 0
     }
 
     ApplicationWindow {
@@ -211,6 +213,8 @@ ApplicationWindow {
         if (Common.isPIP) {
             Common.isPIP = false
             videoOutput.parent = container
+            width = 1280
+            height = 720 + 40
             showNormal()
             hideTimer.restart()
             pipWindow.hidePIPWindow()

@@ -7,17 +7,16 @@ ApplicationWindow {
     id: pipWindow
 
     property real containerHeight: Screen.height / 6
-    width: containerHeight * 16 / 9 + 40
-    height: containerHeight + 40
+    property real videoWidth: 16
+    property real videoHeight: 9
+    property real videoAspectRatio: videoWidth / videoHeight
+    width: containerHeight * videoAspectRatio + 50
+    height: containerHeight + 50
     visible: false
     flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     transientParent: null
     color: "transparent"
     opacity: 0
-    Component.onCompleted: {
-        y: 20
-        x = Screen.width - width - 20
-    }
 
     property bool isPlaying: false
     property real minContainerHeight: Screen.height / 6
@@ -27,28 +26,13 @@ ApplicationWindow {
     signal exitPIP()
     signal togglePlayback()
 
-    PropertyAnimation {
-        id: showAnimation
-        target: pipWindow
-        property: "opacity"
-        from: 0
-        to: 1
-        duration: 300
-        easing.type: Easing.OutCubic
-    }
-
-    PropertyAnimation {
-        id: hideAnimation
-        target: pipWindow
-        property: "opacity"
-        from: 1
-        to: 0
-        duration: 300
-        easing.type: Easing.OutCubic
-        onFinished: pipWindow.visible = false
-    }
+    // Animations
+    PropertyAnimation { id: showAnimation; target: pipWindow; property: "opacity"; from: 0; to: 1; duration: 300; easing.type: Easing.OutCubic }
+    PropertyAnimation { id: hideAnimation; target: pipWindow; property: "opacity"; from: 1; to: 0; duration: 300; easing.type: Easing.OutCubic; onFinished: pipWindow.visible = false }
 
     function showPIPWindow() {
+        y = 20
+        x = Screen.width - width - 20
         visible = true
         showAnimation.start()
         scaleShowAnimation.start()
@@ -62,38 +46,13 @@ ApplicationWindow {
     Item {
         id: rootItem
         anchors.fill: parent
-        anchors.margins: 20
+        anchors.margins: 25
         scale: 0.5
 
-        PropertyAnimation {
-            id: scaleShowAnimation
-            target: rootItem
-            property: "scale"
-            from: 0.5
-            to: 1
-            duration: 300
-            easing.type: Easing.OutCubic
-        }
+        PropertyAnimation { id: scaleShowAnimation; target: rootItem; property: "scale"; from: 0.5; to: 1; duration: 300; easing.type: Easing.OutCubic }
+        PropertyAnimation { id: scaleHideAnimation; target: rootItem; property: "scale"; from: 1; to: 0.5; duration: 300; easing.type: Easing.OutCubic }
 
-        PropertyAnimation {
-            id: scaleHideAnimation
-            target: rootItem
-            property: "scale"
-            from: 1
-            to: 0.5
-            duration: 300
-            easing.type: Easing.OutCubic
-        }
-
-        DropShadow {
-            anchors.fill: maskedContent
-            source: maskedContent
-            radius: 24
-            samples: 33
-            color: "#CC000000"
-            horizontalOffset: 0
-            verticalOffset: 4
-        }
+        DropShadow { anchors.fill: maskedContent; source: maskedContent; radius: 24; samples: 33; color: "#CC000000"; horizontalOffset: 0; verticalOffset: 4 }
 
         Item {
             id: maskedContent
@@ -107,7 +66,7 @@ ApplicationWindow {
 
                 Item {
                     id: videoContainer
-                    width: pipWindow.containerHeight * 16 / 9
+                    width: pipWindow.containerHeight * pipWindow.videoAspectRatio
                     height: pipWindow.containerHeight
                     anchors.centerIn: parent
                 }
@@ -116,16 +75,9 @@ ApplicationWindow {
                     id: controlsOverlay
                     anchors.fill: parent
                     opacity: 0
+                    Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
 
-                    Behavior on opacity {
-                        NumberAnimation { duration: 200; easing.type: Easing.InOutQuad }
-                    }
-
-                    Rectangle {
-                        anchors.fill: parent
-                        color: "black"
-                        opacity: 0.5
-                    }
+                    Rectangle { anchors.fill: parent; color: "black"; opacity: 0.5 }
 
                     IconImage {
                         id: closePIP
@@ -146,7 +98,7 @@ ApplicationWindow {
                         anchors.centerIn: parent
                         color: palette.window
                         opacity: 0
-                        radius: width
+                        radius: width/2
                         width: 80 * (pipWindow.containerHeight / pipWindow.minContainerHeight)
                         height: 80 * (pipWindow.containerHeight / pipWindow.minContainerHeight)
                         Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.InOutQuad } }
@@ -180,11 +132,7 @@ ApplicationWindow {
             OpacityMask {
                 anchors.fill: parent
                 source: contentRect
-                maskSource: Rectangle {
-                    width: contentRect.width
-                    height: contentRect.height
-                    radius: 8
-                }
+                maskSource: Rectangle { width: contentRect.width; height: contentRect.height; radius: 8 }
             }
         }
     }
@@ -225,13 +173,7 @@ ApplicationWindow {
                    y >= height - 36*scale && y <= height
         }
 
-
-        onIsResizingChanged: {
-            if (!isResizing) {
-                controlsOverlay.opacity = 0
-            }
-        }
-
+        onIsResizingChanged: { if (!isResizing) controlsOverlay.opacity = 0 }
         onEntered: controlsOverlay.opacity = 1
         onExited: controlsOverlay.opacity = 0
 
@@ -253,52 +195,35 @@ ApplicationWindow {
         }
 
         onReleased: mouse => {
-            if (isResizing) {
-                isResizing = false
-                return
-            }
-
+            if (isResizing) { isResizing = false; return }
             if (!hasMoved) {
-                if (pressedTarget === "close")
-                    pipWindow.exitPIP()
-                else if (pressedTarget === "playpause")
-                    pipWindow.togglePlayback()
+                if (pressedTarget === "close") pipWindow.exitPIP()
+                else if (pressedTarget === "playpause") pipWindow.togglePlayback()
             }
         }
 
         onPositionChanged: mouse => {
-            if (!pressed) {
-                if (isInResizeArea(mouse.x, mouse.y))
-                    cursorShape = Qt.SizeFDiagCursor
-                else
-                    cursorShape = Qt.ArrowCursor
-            }
+            if (!pressed) cursorShape = isInResizeArea(mouse.x, mouse.y) ? Qt.SizeFDiagCursor : Qt.ArrowCursor
 
             if (isResizing) {
                 controlsOverlay.opacity = 1
                 let deltaY = mouse.y - pressY
                 let newContainerHeight = startContainerHeight + deltaY
                 newContainerHeight = Math.max(pipWindow.minContainerHeight, Math.min(pipWindow.maxContainerHeight, newContainerHeight))
-
                 pipWindow.containerHeight = newContainerHeight
                 pipWindow.height = newContainerHeight + 40
-                pipWindow.width = newContainerHeight * 16 / 9 + 40
+                pipWindow.width = newContainerHeight * pipWindow.videoAspectRatio + 40
             } else {
                 if (!hasMoved && (mouse.x !== pressX || mouse.y !== pressY) && !isInResizeArea(pressX, pressY)) {
                     hasMoved = true
                     pipWindow.startSystemMove()
                 }
-
                 controlsOverlay.opacity = 1
-
-                function isOverLabel(label) {
-                    return mouse.x >= label.x && mouse.x <= label.x + label.width &&
-                           mouse.y >= label.y && mouse.y <= label.y + label.height
-                }
-
-                closePIP.opacity = isOverLabel(closePIP) ? 1 : 0.7
-                playPause.opacity = isOverLabel(playPauseBG) ? 1 : 0.7
-                playPauseBG.opacity = isOverLabel(playPauseBG) ? 0.7 : 0
+                closePIP.opacity = mouse.x >= closePIP.x && mouse.x <= closePIP.x + closePIP.width &&
+                                   mouse.y >= closePIP.y && mouse.y <= closePIP.y + closePIP.height ? 1 : 0.7
+                playPause.opacity = mouse.x >= playPauseBG.x && mouse.x <= playPauseBG.x + playPauseBG.width &&
+                                    mouse.y >= playPauseBG.y && mouse.y <= playPauseBG.y + playPauseBG.height ? 1 : 0.7
+                playPauseBG.opacity = playPause.opacity === 1 ? 0.7 : 0
             }
         }
     }

@@ -17,11 +17,7 @@ ApplicationWindow {
     minimumHeight: 720 + 40
     title: "MediaPlayer"
 
-    property bool toolbarsAnimating: false
     property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsDialog.visible || contextMenu.opened || aboutDialog.visible
-    property bool mouseOverControls: false
-    property string currentTime: Qt.formatTime(new Date(), "hh:mm")
-
     property var currentAudioOutput: null
 
     onAnyMenuOpenChanged: {
@@ -30,22 +26,9 @@ ApplicationWindow {
         }
     }
 
-    Component.onDestruction: {
-        MediaController.setPreventSleep(false)
-    }
-
-    Timer {
-        id: clockTimer
-        interval: 60000
-        running: true
-        repeat: true
-        onTriggered: window.currentTime = Qt.formatTime(new Date(), "hh:mm")
-    }
-
     Connections {
         target: MediaController
         function onTrackSelectionRequested(audioLanguage, subtitleLanguage, autoSelectSubtitles) {
-            console.log("Track selection requested - Audio:", audioLanguage, "Subtitle:", subtitleLanguage, "Auto:", autoSelectSubtitles)
             if (mediaPlayer.audioTracks.length > 0 || mediaPlayer.subtitleTracks.length > 0) {
                 Qt.callLater(() => {
                                  mediaPlayer.selectTracksWithPreferences(audioLanguage, subtitleLanguage, autoSelectSubtitles)
@@ -60,7 +43,6 @@ ApplicationWindow {
 
         function onSystemResumed() {
             Qt.callLater(window.performAudioRecovery)
-            window.currentTime = Qt.formatTime(new Date(), "hh:mm")
         }
     }
 
@@ -149,7 +131,7 @@ ApplicationWindow {
     }
 
     function showControls() {
-        if (window.toolbarsAnimating) return
+        if (Common.toolbarsAnimating) return
         controlsToolbar.opacity = 1.0
         fullscreenToolbar.opacity = 1.0
         MediaController.setCursorState(MediaController.Normal)
@@ -167,7 +149,7 @@ ApplicationWindow {
             if (!Common.isVideo) {
                 return
             }
-            if (window.anyMenuOpen || window.mouseOverControls) {
+            if (window.anyMenuOpen || Common.mouseOverControls) {
                 hideTimer.restart()
                 return
             }
@@ -336,46 +318,22 @@ ApplicationWindow {
         }
 
         function selectTracksWithPreferences(audioLanguage, subtitleLanguage, autoSelectSubtitles) {
-            console.log("=== QML TRACK SELECTION WITH PREFERENCES ===")
-            console.log("Audio tracks:", audioTracks.length, "Subtitle tracks:", subtitleTracks.length)
-            console.log("Current audio track:", activeAudioTrack, "Current subtitle track:", activeSubtitleTrack)
-            console.log("Preferences - Audio:", audioLanguage, "Subtitle:", subtitleLanguage, "Auto:", autoSelectSubtitles)
-
-            // Debug track information
-            for (var i = 0; i < audioTracks.length; i++) {
-                var track = audioTracks[i]
-                if (track && track.stringValue) {
-                    console.log("Audio track", i, "- Language:", track.stringValue(6), "Title:", track.stringValue(0))
-                }
-            }
-
             if (audioTracks.length > 1) {
                 var preferredAudioIndex = findTrackByLanguage(audioTracks, audioLanguage)
                 if (preferredAudioIndex >= 0) {
-                    console.log("Setting audio track to", preferredAudioIndex, "for language", audioLanguage)
                     activeAudioTrack = preferredAudioIndex
-                } else {
-                    console.log("No audio track found for language", audioLanguage, "keeping default")
                 }
             }
 
             if (autoSelectSubtitles && subtitleTracks.length > 0) {
                 var preferredSubtitleIndex = findTrackByLanguage(subtitleTracks, subtitleLanguage)
                 if (preferredSubtitleIndex >= 0) {
-                    console.log("Setting subtitle track to", preferredSubtitleIndex, "for language", subtitleLanguage)
                     activeSubtitleTrack = preferredSubtitleIndex
-                } else {
-                    console.log("No subtitle track found for language", subtitleLanguage, "keeping off")
                 }
             }
-
-            console.log("Final tracks - Audio:", activeAudioTrack, "Subtitle:", activeSubtitleTrack)
-            console.log("=== END QML TRACK SELECTION ===")
         }
 
         function findTrackByLanguage(tracks, preferredLang) {
-            console.log("Finding track for language:", preferredLang, "in", tracks.length, "tracks")
-
             var langMap = {
                 "en": ["eng", "en", "english"],
                 "fr": ["fre", "fra", "fr", "french", "français", "francais"],
@@ -390,48 +348,32 @@ ApplicationWindow {
             }
 
             var searchTerms = langMap[preferredLang.toLowerCase()] || [preferredLang.toLowerCase()]
-            console.log("Search terms:", searchTerms)
-
             for (var i = 0; i < tracks.length; i++) {
                 var track = tracks[i]
-                console.log("Examining track", i)
-
                 if (track) {
                     var language = ""
                     var title = ""
-
                     try {
                         if (track.stringValue !== undefined) {
                             language = track.stringValue(6) || ""
                             title = track.stringValue(0) || ""
                         }
-
                         language = language.toLowerCase()
                         title = title.toLowerCase()
-
-                        console.log("Track", i, "- Language:", language, "Title:", title)
-
                         for (var j = 0; j < searchTerms.length; j++) {
                             var term = searchTerms[j]
-
                             if (language && language === term) {
-                                console.log("✓ Exact language match:", language, "==", term)
                                 return i
                             }
-
                             if (title && title.indexOf(term) >= 0) {
-                                console.log("✓ Title contains match:", title, "contains", term)
                                 return i
                             }
                         }
-
                     } catch (e) {
                         console.log("Error accessing track", i, "metadata:", e)
                     }
                 }
             }
-
-            console.log("✗ No match found for language:", preferredLang)
             return -1
         }
 
@@ -659,12 +601,12 @@ ApplicationWindow {
 
         HoverHandler {
             id: fullscreenToolbarHover
-            enabled: !window.toolbarsAnimating
+            enabled: !Common.toolbarsAnimating
             onHoveredChanged: {
                 if (hovered) {
-                    window.mouseOverControls = true
+                    Common.mouseOverControls = true
                 } else {
-                    window.mouseOverControls = false
+                    Common.mouseOverControls = false
                     if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
                         hideTimer.restart()
                     }
@@ -673,7 +615,7 @@ ApplicationWindow {
 
             onPointChanged: {
                 if (hovered) {
-                    window.mouseOverControls = true
+                    Common.mouseOverControls = true
                 }
             }
         }
@@ -682,7 +624,7 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
-                onRunningChanged: window.toolbarsAnimating = running
+                onRunningChanged: Common.toolbarsAnimating = running
             }
         }
 
@@ -690,7 +632,7 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
-                onRunningChanged: window.toolbarsAnimating = running
+                onRunningChanged: Common.toolbarsAnimating = running
             }
         }
 
@@ -698,7 +640,6 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
-                //onRunningChanged: window.toolbarsAnimating = running
             }
         }
 
@@ -706,7 +647,6 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
-                //onRunningChanged: window.toolbarsAnimating = running
             }
         }
 
@@ -796,7 +736,7 @@ ApplicationWindow {
             Label {
                 anchors.verticalCenter: parent.verticalCenter
                 color: palette.windowText
-                text: window.currentTime
+                text: Common.currentTime
                 font.pointSize: 11
                 opacity: 0.7
             }
@@ -1296,12 +1236,12 @@ ApplicationWindow {
 
         HoverHandler {
             id: controlsToolbarHover
-            enabled: !window.toolbarsAnimating
+            enabled: !Common.toolbarsAnimating
             onHoveredChanged: {
                 if (hovered) {
-                    window.mouseOverControls = true
+                    Common.mouseOverControls = true
                 } else {
-                    window.mouseOverControls = false
+                    Common.mouseOverControls = false
                     if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
                         hideTimer.restart()
                     }
@@ -1310,7 +1250,7 @@ ApplicationWindow {
 
             onPointChanged: {
                 if (hovered) {
-                    window.mouseOverControls = true
+                    Common.mouseOverControls = true
                 }
             }
         }
@@ -1319,7 +1259,7 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
-                onRunningChanged: window.toolbarsAnimating = running
+                onRunningChanged: Common.toolbarsAnimating = running
             }
         }
 
@@ -1327,7 +1267,6 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
-                //onRunningChanged: window.toolbarsAnimating = running
             }
         }
 
@@ -1335,7 +1274,6 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
-                //onRunningChanged: window.toolbarsAnimating = running
             }
         }
 
@@ -1343,7 +1281,7 @@ ApplicationWindow {
             NumberAnimation {
                 duration: 300
                 easing.type: Easing.InOutQuad
-                onRunningChanged: window.toolbarsAnimating = running
+                onRunningChanged: Common.toolbarsAnimating = running
             }
         }
 

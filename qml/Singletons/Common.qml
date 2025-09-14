@@ -10,32 +10,34 @@ Item {
     property int mediaFileSize: 0
     property bool enableScaleAnimation: false
     property bool isVideo: false
-    property bool isDarkMode: calculateLuminance(palette.window) < 0.5
+    property bool isDarkMode: Qt.application.styleHints.colorScheme === Qt.Dark // qmllint disable missing-property
+    property string currentTime: Qt.formatTime(new Date(), "hh:mm")
+    property bool mouseOverControls: false
+    property bool toolbarsAnimating: false
 
-    function calculateLuminance(color) {
-        // Convert color to RGB values (0-1 range)
-        var r = color.r
-        var g = color.g
-        var b = color.b
+    Timer {
+        id: clockTimer
+        interval: 60000
+        running: true
+        repeat: true
+        onTriggered: Common.currentTime = Qt.formatTime(new Date(), "hh:mm")
+    }
 
-        // Calculate relative luminance using standard formula
-        return 0.299 * r + 0.587 * g + 0.114 * b
+    Connections {
+        target: MediaController
+        function onSystemResumed() {
+            Common.currentTime = Qt.formatTime(new Date(), "hh:mm")
+        }
     }
 
     function loadMedia(mediaPath) {
         currentMediaPath = mediaPath
         mediaFileSize = MediaController.getFileSize(mediaPath)
 
-        // Build playlist from the current file's directory
         MediaController.buildPlaylistFromFile(mediaPath)
-
-        // Update current file in the playlist
         MediaController.setCurrentFile(mediaPath)
-
-        // Load metadata for audio files
         MediaController.loadMediaMetadata(mediaPath)
 
-        // Determine if it's a video file
         var path = mediaPath.toString().toLowerCase()
         isVideo = path.includes('.mp4') || path.includes('.avi') ||
                 path.includes('.mov') || path.includes('.mkv') ||

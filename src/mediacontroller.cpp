@@ -80,6 +80,11 @@ MediaController::MediaController(QObject *parent)
             this, &MediaController::systemResumed);
 }
 
+MediaController::~MediaController()
+{
+    setPreventSleep(false);
+}
+
 MediaController* MediaController::create(QQmlEngine *qmlEngine, QJSEngine *jsEngine)
 {
     Q_UNUSED(qmlEngine);
@@ -117,9 +122,6 @@ void MediaController::loadMediaMetadata(const QString &filePath)
     QString audioLanguage = settings.value("preferredAudioLanguage", "en").toString();
     QString subtitleLanguage = settings.value("preferredSubtitleLanguage", "en").toString();
     bool autoSelectSubtitles = settings.value("autoSelectSubtitles", true).toBool();
-
-    qDebug() << "MediaController: Read preferences - Audio:" << audioLanguage
-             << "Subtitle:" << subtitleLanguage << "Auto-select:" << autoSelectSubtitles;
 
     emit trackSelectionRequested(audioLanguage, subtitleLanguage, autoSelectSubtitles);
 }
@@ -412,7 +414,6 @@ void MediaController::setActiveAudioTrack(int track)
 {
     if (m_activeAudioTrack != track) {
         m_activeAudioTrack = track;
-        qDebug() << "MediaController: Audio track changed to" << track;
         emit tracksChanged();
     }
 }
@@ -421,7 +422,6 @@ void MediaController::setActiveSubtitleTrack(int track)
 {
     if (m_activeSubtitleTrack != track) {
         m_activeSubtitleTrack = track;
-        qDebug() << "MediaController: Subtitle track changed to" << track;
         emit tracksChanged();
     }
 }

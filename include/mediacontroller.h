@@ -113,6 +113,7 @@ private slots:
 
 private:
     explicit MediaController(QObject *parent = nullptr);
+    ~MediaController();
     static MediaController* s_instance;
     QString m_initialMediaPath;
 

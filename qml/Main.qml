@@ -20,6 +20,65 @@ ApplicationWindow {
     property bool anyMenuOpen: audioTracksMenu.opened || subtitleTracksMenu.opened || settingsDialog.visible || contextMenu.opened || aboutDialog.visible
     property var currentAudioOutput: null
 
+
+
+    ApplicationWindow {
+        id: fullscreenOverlay
+        visible: false
+        opacity: 0
+        flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+        color: "black"
+        x: 0
+        y: 0
+        width: Screen.width
+        height: Screen.height
+
+        NumberAnimation {
+            id: fadeInAnimation
+            target: fullscreenOverlay
+            property: "opacity"
+            from: 0
+            to: 1
+            duration: 200
+            easing.type: Easing.Linear
+            onFinished: {
+                if (window.visibility === Window.FullScreen) {
+                    window.showNormal()
+                    controlsToolbar.opacity = 1.0
+                    hideTimer.stop()
+                } else {
+                    window.showFullScreen()
+                    window.showControls()
+                }
+                fadeOutAnimation.start()
+            }
+        }
+
+        NumberAnimation {
+            id: fadeOutAnimation
+            target: fullscreenOverlay
+            property: "opacity"
+            from: 1
+            to: 0
+            duration: 200
+            easing.type: Easing.Linear
+            onFinished: {
+                fullscreenOverlay.visible = false
+                Common.isTransitioningToFullscreen = false
+            }
+        }
+    }
+
+    function toggleFullscreen() {
+        if (Common.isTransitioningToFullscreen) {
+            return
+        }
+
+        Common.isTransitioningToFullscreen = true
+        fullscreenOverlay.visible = true
+        fadeInAnimation.start()
+    }
+
     onAnyMenuOpenChanged: {
         if (!anyMenuOpen) {
             menuClosedRecentlyTimer.restart()
@@ -1541,17 +1600,6 @@ ApplicationWindow {
         onAccepted: {
             Common.loadMedia(selectedFile)
             mediaPlayer.source = selectedFile
-        }
-    }
-
-    function toggleFullscreen() {
-        if (window.visibility === Window.FullScreen) {
-            window.showNormal()
-            controlsToolbar.opacity = 1.0
-            hideTimer.stop()
-        } else {
-            window.showFullScreen()
-            showControls()
         }
     }
 }

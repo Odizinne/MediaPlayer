@@ -14,6 +14,7 @@ Item {
     property string currentTime: Qt.formatTime(new Date(), "hh:mm")
     property bool mouseOverControls: false
     property bool toolbarsAnimating: false
+    property bool isTransitioningToFullscreen: false
 
     Timer {
         id: clockTimer

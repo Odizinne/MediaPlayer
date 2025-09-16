@@ -141,7 +141,7 @@ ApplicationWindow {
         sourceComponent: Component {
             AudioOutput {
                 device: window.currentAudioOutput
-                volume: volumeSlider.value
+                volume: Common.mediaVolume
                 muted: muteButton.checked
             }
         }
@@ -268,11 +268,11 @@ ApplicationWindow {
     Shortcut {
         sequence: "Up"
         onActivated: {
-            var newVolume = volumeSlider.value + 0.05
+            var newVolume = Common.mediaVolume + 0.05
             if (newVolume > 1.0) {
                 newVolume = 1.0
             }
-            volumeSlider.value = newVolume
+            Common.mediaVolume = newVolume
             volumeIndicator.show()
         }
     }
@@ -280,11 +280,11 @@ ApplicationWindow {
     Shortcut {
         sequence: "Down"
         onActivated: {
-            var newVolume = volumeSlider.value - 0.05
+            var newVolume = Common.mediaVolume - 0.05
             if (newVolume < 0.0) {
                 newVolume = 0.0
             }
-            volumeSlider.value = newVolume
+            Common.mediaVolume = newVolume
             volumeIndicator.show()
         }
     }
@@ -671,7 +671,7 @@ ApplicationWindow {
         id: volumeIndicator
         y: controlsToolbar.y - height - 20
         x: (parent.width - width) / 2
-        value: volumeSlider.value
+        value: Common.mediaVolume
     }
 
     ToolBar {
@@ -1021,7 +1021,7 @@ ApplicationWindow {
             onWheel: function(wheel) {
                 var delta = wheel.angleDelta.y / 120
                 var volumeStep = 0.05
-                var newVolume = volumeSlider.value + (delta * volumeStep)
+                var newVolume = Common.mediaVolume + (delta * volumeStep)
 
                 if (newVolume > 1.0) {
                     newVolume = 1.0
@@ -1029,7 +1029,7 @@ ApplicationWindow {
                     newVolume = 0.0
                 }
 
-                volumeSlider.value = newVolume
+                Common.mediaVolume = newVolume
                 volumeIndicator.show()
                 window.showControls()
             }
@@ -1594,7 +1594,7 @@ ApplicationWindow {
 
             NFToolButton {
                 id: muteButton
-                icon.source: checked || volumeSlider.value === 0 ? "qrc:/icons/volume_mute.svg" : "qrc:/icons/volume.svg"
+                icon.source: checked || Common.mediaVolume === 0 ? "qrc:/icons/volume_mute.svg" : "qrc:/icons/volume.svg"
                 checkable: true
                 width: 48
                 height: 48
@@ -1608,7 +1608,7 @@ ApplicationWindow {
                 anchors.verticalCenter: parent.verticalCenter
                 from: 0
                 to: 1
-                value: 1
+                value: Common.mediaVolume
                 ToolTip.visible: hovered
                 ToolTip.text: "Volume: " + Math.round(value * 100) + "%"
             }

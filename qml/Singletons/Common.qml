@@ -16,6 +16,7 @@ Item {
     property bool toolbarsAnimating: false
     property bool isTransitioningToFullscreen: false
     property bool isPIP: false
+    property real mediaVolume: 1
 
     Timer {
         id: clockTimer

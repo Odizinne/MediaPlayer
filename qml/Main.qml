@@ -225,6 +225,15 @@ ApplicationWindow {
             close()
             hideTimer.stop()
             pipWindow.showPIPWindow()
+            let wasPlaying = mediaPlayer.playbackState === MediaPlayer.PlayingState
+            if (!wasPlaying) {
+                mediaPlayer.play()
+                Qt.callLater(() => {
+                    if (!wasPlaying) {
+                        mediaPlayer.pause()
+                    }
+                })
+            }
         }
     }
 

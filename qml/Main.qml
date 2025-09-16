@@ -239,8 +239,7 @@ ApplicationWindow {
 
     function showControls() {
         if (Common.toolbarsAnimating) return
-        controlsToolbar.opacity = 1.0
-        fullscreenToolbar.opacity = 1.0
+        Common.controlsVisible = true
         MediaController.setCursorState(MediaController.Normal)
         if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
             hideTimer.restart()
@@ -260,8 +259,7 @@ ApplicationWindow {
                 hideTimer.restart()
                 return
             }
-            controlsToolbar.opacity = 0.0
-            fullscreenToolbar.opacity = 0.0
+            Common.controlsVisible = false
             MediaController.setCursorState(MediaController.Hidden)
         }
     }
@@ -686,12 +684,12 @@ ApplicationWindow {
     ToolBar {
         id: fullscreenToolbar
         visible: window.visibility === Window.FullScreen && Common.currentMediaPath !== ""
-        opacity: 1.0
+        opacity: Common.controlsVisible ? 1.0 : 0.0
         height: 45
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.topMargin: opacity > 0 ? (UserSettings.floatingUi ? 20 : 0) : -height
+        anchors.topMargin: Common.controlsVisible ? (UserSettings.floatingUi ? 20 : 0) : -height
         anchors.rightMargin: UserSettings.floatingUi ? 20 : 0
         anchors.leftMargin: UserSettings.floatingUi ? 20 : 0
         anchors.bottomMargin: UserSettings.floatingUi ? 20 : 0
@@ -1353,12 +1351,12 @@ ApplicationWindow {
     ToolBar {
         id: controlsToolbar
         visible: Common.currentMediaPath !== ""
-        opacity: 1.0
+        opacity: Common.controlsVisible ? 1.0 : 0.0
         height: 120
-        anchors.bottomMargin: opacity > 0 ? (UserSettings.floatingUi ? 20 : 0) : -height
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: Common.controlsVisible ? (UserSettings.floatingUi ? 20 : 0) : -height
         anchors.leftMargin: UserSettings.floatingUi ? 20 : 0
         anchors.rightMargin: UserSettings.floatingUi ? 20 : 0
 

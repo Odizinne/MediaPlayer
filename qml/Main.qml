@@ -27,51 +27,23 @@ ApplicationWindow {
         videoHeight: videoOutput ? videoOutput.videoSink.videoSize.height : 0
     }
 
-    ApplicationWindow {
+    Connections {
+        target: fullscreenOverlay
+        function onRequestShowFullScreen() {
+            window.showFullScreen()
+            window.showControls()
+        }
+
+        function onRequestShowNormal() {
+            window.showNormal()
+            controlsToolbar.opacity = 1.0
+            hideTimer.stop()
+        }
+    }
+
+    FullscreenTransitionOverlay {
         id: fullscreenOverlay
-        visible: false
-        opacity: 0
-        flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
-        color: "black"
-        x: 0
-        y: 0
-        width: Screen.width
-        height: Screen.height
-
-        NumberAnimation {
-            id: fadeInAnimation
-            target: fullscreenOverlay
-            property: "opacity"
-            from: 0
-            to: 1
-            duration: 200
-            easing.type: Easing.Linear
-            onFinished: {
-                if (window.visibility === Window.FullScreen) {
-                    window.showNormal()
-                    controlsToolbar.opacity = 1.0
-                    hideTimer.stop()
-                } else {
-                    window.showFullScreen()
-                    window.showControls()
-                }
-                fadeOutAnimation.start()
-            }
-        }
-
-        NumberAnimation {
-            id: fadeOutAnimation
-            target: fullscreenOverlay
-            property: "opacity"
-            from: 1
-            to: 0
-            duration: 200
-            easing.type: Easing.Linear
-            onFinished: {
-                fullscreenOverlay.visible = false
-                Common.isTransitioningToFullscreen = false
-            }
-        }
+        mainWindowFullscreen: window.visibility === Window.FullScreen
     }
 
     function toggleFullscreen() {
@@ -81,7 +53,7 @@ ApplicationWindow {
 
         Common.isTransitioningToFullscreen = true
         fullscreenOverlay.visible = true
-        fadeInAnimation.start()
+        fullscreenOverlay.startAnimation()
     }
 
     onAnyMenuOpenChanged: {
@@ -121,6 +93,21 @@ ApplicationWindow {
                 hideTimer.stop()
                 controlsToolbar.opacity = 1.0
                 MediaController.setCursorState(MediaController.Normal)
+            }
+        }
+    }
+
+    Connections {
+        target: pipWindow
+        function onExitPIP() {
+            window.togglePictureInPicture()
+        }
+
+        function onTogglePlayback() {
+            if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
+                mediaPlayer.pause()
+            } else {
+                mediaPlayer.play()
             }
         }
     }
@@ -190,21 +177,6 @@ ApplicationWindow {
                 })
             } else {
                 mediaPlayer.setPosition(0)
-            }
-        }
-    }
-
-    Connections {
-        target: pipWindow
-        function onExitPIP() {
-            window.togglePictureInPicture()
-        }
-
-        function onTogglePlayback() {
-            if (mediaPlayer.playbackState === MediaPlayer.PlayingState) {
-                mediaPlayer.pause()
-            } else {
-                mediaPlayer.play()
             }
         }
     }
@@ -391,7 +363,6 @@ ApplicationWindow {
 
         onMediaStatusChanged: {
             if (mediaStatus === MediaPlayer.LoadedMedia) {
-                // Handle video/audio playback
                 if (Common.isVideo) {
                     if (mediaPlayer.hasVideo && videoOutput.sourceRect.width > 0) {
                         Common.mediaWidth = videoOutput.sourceRect.width
@@ -413,7 +384,6 @@ ApplicationWindow {
                 MediaController.setPreventSleep(false)
             } else if (mediaStatus === MediaPlayer.EndOfMedia) {
                 MediaController.setPreventSleep(false)
-
                 if (sleepButton.checked && MediaController.hasNext) {
                     continuePlayingDialog.open()
                 } else if (MediaController.hasNext) {

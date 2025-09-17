@@ -93,6 +93,7 @@ qt_add_qml_module(${CMAKE_PROJECT_NAME}
     VERSION 1.0
     QML_FILES ${QML_FILES} ${QML_SINGLETONS}
     QML_FILES qml/PictureInPictureWindow.qml
+    QML_FILES qml/FullscreenTransitionOverlay.qml
 )
 
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES

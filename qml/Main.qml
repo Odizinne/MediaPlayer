@@ -281,7 +281,7 @@ ApplicationWindow {
     }
 
     Shortcut {
-        sequence: StandardKey.Open
+        sequences: [StandardKey.Open]
         onActivated: fileDialog.open()
     }
 
@@ -1586,6 +1586,7 @@ ApplicationWindow {
                 from: 0
                 to: 1
                 value: Common.mediaVolume
+                onValueChanged: Common.mediaVolume = value
                 ToolTip.visible: hovered
                 ToolTip.text: "Volume: " + Math.round(value * 100) + "%"
             }

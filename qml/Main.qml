@@ -80,6 +80,20 @@ ApplicationWindow {
         function onSystemResumed() {
             Qt.callLater(window.performAudioRecovery)
         }
+
+        function onFileReceivedFromAnotherInstance(filePath) {
+            // Bring window to foreground
+            window.raise()
+            window.requestActivate()
+
+            // Load the received file
+            Qt.callLater(() => {
+                // Convert local file path to file:// URL if needed
+                var sourceUrl = filePath.startsWith("file://") ? filePath : "file:///" + filePath.replace(/\\/g, "/")
+                Common.loadMedia(sourceUrl)
+                mediaPlayer.source = sourceUrl
+            })
+        }
     }
 
     Connections {

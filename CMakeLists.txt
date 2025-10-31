@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 
-project(MediaPlayer VERSION 0.5.1 LANGUAGES CXX)
+project(MediaPlayer VERSION 0.5.2 LANGUAGES CXX)
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Installation directory" FORCE)
 set(CMAKE_CXX_STANDARD 20)
@@ -18,12 +18,14 @@ set(HEADERS
     include/mediacontroller.h
     include/windowspowereventfilter.h
     include/versionhelper.h
+    include/singleinstanceserver.h
 )
 
 set(SOURCES
     src/mediacontroller.cpp
     src/windowspowereventfilter.cpp
     src/versionhelper.cpp
+    src/singleinstanceserver.cpp
     src/main.cpp
 )
 

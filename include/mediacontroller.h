@@ -23,6 +23,7 @@
 #include <QSettings>
 #include <Windows.h>
 #include "windowspowereventfilter.h"
+#include "singleinstanceserver.h"
 
 class CoverArtImageProvider : public QQuickImageProvider
 {
@@ -83,6 +84,8 @@ public:
     Q_INVOKABLE void updateTracks(const QVariantList &audioTracks, const QVariantList &subtitleTracks, int activeAudio, int activeSubtitle);
     Q_INVOKABLE void selectDefaultTracks();
 
+    void setInstanceServer(SingleInstanceServer *server);
+
     bool hasNext() const;
     bool hasPrevious() const;
     int getCurrentIndex() const;
@@ -106,16 +109,19 @@ signals:
     void systemResumed();
     void tracksChanged();
     void trackSelectionRequested(const QString &audioLanguage, const QString &subtitleLanguage, bool autoSelectSubtitles);
+    void fileReceivedFromAnotherInstance(const QString &filePath);
 
 private slots:
     void onMetadataChanged();
     void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
+    void onFilePathReceivedFromInstance(const QString &filePath);
 
 private:
     explicit MediaController(QObject *parent = nullptr);
     ~MediaController();
     static MediaController* s_instance;
     QString m_initialMediaPath;
+    SingleInstanceServer* m_instanceServer;
 
     QStringList m_playlist;
     int m_currentIndex;

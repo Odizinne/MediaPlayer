@@ -49,7 +49,8 @@ void CoverArtImageProvider::clearCoverArt(const QString &filePath)
 
 MediaController::MediaController(QObject *parent)
     : QObject(parent), m_currentIndex(-1), m_metadataPlayer(nullptr),
-    m_metadataAudioOutput(nullptr), m_activeAudioTrack(-1), m_activeSubtitleTrack(-1)
+    m_metadataAudioOutput(nullptr), m_activeAudioTrack(-1), m_activeSubtitleTrack(-1),
+    m_instanceServer(nullptr)
 {
     if (!s_coverArtProvider) {
         s_coverArtProvider = new CoverArtImageProvider();
@@ -458,5 +459,39 @@ void MediaController::updateTracks(const QVariantList &audioTracks, const QVaria
 void MediaController::selectDefaultTracks()
 {
     qDebug() << "Track selection is now handled in QML";
+}
+
+void MediaController::setInstanceServer(SingleInstanceServer *server)
+{
+    m_instanceServer = server;
+    if (m_instanceServer) {
+        connect(m_instanceServer, &SingleInstanceServer::filePathReceived,
+                this, &MediaController::onFilePathReceivedFromInstance);
+        qDebug() << "Instance server connected to MediaController";
+    }
+}
+
+void MediaController::onFilePathReceivedFromInstance(const QString &filePath)
+{
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+    qDebug() << "MediaController received file from another instance:" << filePath;
+
+    // Validate the file exists
+    QString localPath = filePath;
+    if (localPath.startsWith("file://")) {
+        localPath = QUrl(localPath).toLocalFile();
+    }
+
+    QFileInfo fileInfo(localPath);
+    if (!fileInfo.exists() || !fileInfo.isFile()) {
+        qWarning() << "Received file path does not exist:" << filePath;
+        return;
+    }
+
+    // Emit signal so QML can load and display the file
+    emit fileReceivedFromAnotherInstance(filePath);
 }
 
